@@ -34,6 +34,7 @@ const ActivityHistoryDetails = () => {
   const { orderId } = useParams();
   const [orderData, setOrderData] = useState(null);
 
+  // Retrieve User Orders
   useEffect(() => {
     const getOrder = async () => {
       const orderRef = doc(collection(db, "UserOrders"), orderId);
@@ -45,6 +46,7 @@ const ActivityHistoryDetails = () => {
     getOrder();
   }, [orderId]);
 
+  // Order Status
   const [currentStep, setCurrentStep] = useState("0");
   useEffect(() => {
     if (orderData != null) {
@@ -63,16 +65,19 @@ const ActivityHistoryDetails = () => {
     }
   }, [orderData]);
 
+  // Modal
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const closeFeedbackModal = () => {
     setShowFeedbackModal(false);
   };
 
+  // Already reviewed or not
   const [hasReviewed, setHasReviewed] = useState(false);
   const handleHasReviewedChange = (value) => {
     setHasReviewed(value);
   };
 
+  // Retrieve Feedback Data
   const [feedbackData, setFeedbackData] = useState([]);
   useEffect(() => {
     const fetchFeedbackData = async () => {
@@ -88,6 +93,20 @@ const ActivityHistoryDetails = () => {
     fetchFeedbackData();
   }, [orderData?.orderId]);
 
+  // Retrieve Delivery Fee Value
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  useEffect(() => {
+    const fetchDeliveryFee = async () => {
+      const deliveryFeeRef = doc(db, "DeliveryFee", "deliveryFee");
+      const deliveryFeeDoc = await getDoc(deliveryFeeRef);
+      if (deliveryFeeDoc.exists()) {
+        const fee = deliveryFeeDoc.data().value;
+        setDeliveryFee(fee);
+      }
+    };
+
+    fetchDeliveryFee();
+  }, []);
   return (
     <section>
       <Container>
@@ -253,7 +272,13 @@ const ActivityHistoryDetails = () => {
                   </span>
                 </h6>
                 <h6>
-                  Delivery Fee: <span>₱ 50.00</span>
+                  Delivery Fee:{" "}
+                  <span>
+                    ₱{" "}
+                    {parseFloat(orderData?.orderDeliveryFee || 50)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  </span>
                 </h6>
                 <h6>
                   Total:

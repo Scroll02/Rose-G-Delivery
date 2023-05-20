@@ -29,42 +29,6 @@ const ForgotPassword = () => {
   };
 
   /* -------------------- Forgot Password Button Function -------------------- */
-
-  // const handleSubmit = () => {
-  //   if (email === "") {
-  //     showErrorToast("Please enter your email address", 2000);
-  //   } else if (!/\S+@\S+\.\S+/.test(email)) {
-  //     showErrorToast("Please enter a valid email address format", 2000);
-  //   } else {
-  //     const emailRef = collection(db, "UserData");
-  //     const query = query(emailRef, where("email", "==", email));
-  //     getDocs(query)
-  //       .then((querySnapshot) => {
-  //         if (querySnapshot.empty) {
-  //           showErrorToast("Email does not exist");
-  //         } else {
-  //           sendPasswordResetEmail(auth, email)
-  //             .then(() => {
-  //               showSuccessToast(
-  //                 "Password reset email has been sent successfully"
-  //               );
-  //               setSuccessMsg(
-  //                 "Password reset email has been sent successfully. Check it on spam section"
-  //               );
-  //             })
-  //             .catch((error) => {
-  //               const errorCode = error.code;
-  //               const errorMessage = error.message;
-  //               showErrorToast(error.message);
-  //             });
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.error(error);
-  //         showErrorToast("Failed to check email existence. Please try again.");
-  //       });
-  //   }
-  // };
   const handleSubmit = () => {
     if (email === "") {
       showErrorToast("Please enter your email address", 2000);
@@ -76,15 +40,16 @@ const ForgotPassword = () => {
       getDocs(q)
         .then((querySnapshot) => {
           if (querySnapshot.empty) {
-            showErrorToast("Email does not exist");
+            showErrorToast("Email address not found", 2000);
           } else {
             sendPasswordResetEmail(auth, email)
               .then(() => {
                 showSuccessToast(
-                  "Password reset email has been sent successfully"
+                  "Password reset email has been sent successfully",
+                  3000
                 );
                 setSuccessMsg(
-                  "Password reset email has been sent successfully. Check it on spam section"
+                  "A password reset email has been sent to your email address. Please check your inbox, including the spam section."
                 );
               })
               .catch((error) => {
@@ -97,7 +62,8 @@ const ForgotPassword = () => {
         .catch((error) => {
           console.error(error);
           showErrorToast(
-            "Failed to check email existence. Please try again later."
+            "Failed to check email existence. Please try again later.",
+            2000
           );
         });
     }

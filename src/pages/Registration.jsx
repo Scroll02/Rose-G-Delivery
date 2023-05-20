@@ -22,6 +22,9 @@ import { addDoc, collection, setDoc, doc, updateDoc } from "firebase/firestore";
 // Toast
 import { showSuccessToast, showErrorToast } from "../components/Toast/Toast";
 
+// Modal
+import VerificationModal from "../components/Modal/VerificationModal";
+
 const Registration = () => {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
@@ -139,15 +142,16 @@ const Registration = () => {
 
       // Send email verification
       await sendEmailVerification(auth.currentUser);
-      showSuccessToast("Send an email verification", 1000);
+      // showSuccessToast("Send an email verification", 1000);
+      setEmail(email);
+      setShowVerificationModal(true);
 
-      signOut(auth);
       setFirstName("");
       setLastName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      navigate("/login");
+      // navigate("/login");
     } catch (error) {
       showErrorToast("Sign up firebase error", error.message);
       if (
@@ -166,20 +170,11 @@ const Registration = () => {
         confirmPassword.length === 0
       ) {
         setCustomErrorMsg("Fill out the form");
-      } else if (
-        error.message ===
-        "Firebase: The email address is already in use by another account. (auth/email-already-in-use)."
-      ) {
-        setCustomErrorMsg("Email already exists");
-      } else if (
-        error.message ===
-        "Firebase: The email address is badly formatted. (auth/invalid-email)."
-      ) {
+      } else if (error.message === "auth/email-already-in-use") {
+        setCustomErrorMsg("The email address is already in use");
+      } else if (error.message === "auth/invalid-email") {
         setCustomErrorMsg("Invalid Email");
-      } else if (
-        error.message ===
-        "Firebase: Password should be at least 6 characters (auth/weak-password)."
-      ) {
+      } else if (error.message === "auth/weak-password") {
         setCustomErrorMsg(
           `Password should be at least 8 characters, 1 numeric character, 1 lowercase letter, 1 uppercase letter, 1 special character`
         );
@@ -189,8 +184,42 @@ const Registration = () => {
     }
   };
 
+  // Verification Modal
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const closeVerificationModal = () => {
+    setShowVerificationModal(false);
+    signOut(auth);
+  };
+
+  const resendVerificationEmail = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await sendEmailVerification(user);
+        // Show success message or perform any other actions
+        showSuccessToast("Verification email sent successfully", 2000);
+      } else {
+        showErrorToast("No user found", 2000);
+      }
+    } catch (error) {
+      // Handle error
+      showErrorToast(
+        "Error sending verification email: " + error.message,
+        2000
+      );
+    }
+  };
+
   return (
     <div className="registration__body">
+      {/* Verification Modal */}
+      {showVerificationModal && (
+        <VerificationModal
+          closeVerificationModal={closeVerificationModal}
+          resendVerificationEmail={resendVerificationEmail}
+        />
+      )}
+
       <div className="registrationForm__container">
         <h5 className="mb-3">Create An Account!</h5>
         {/*------------------ Registration Content ----------------- */}

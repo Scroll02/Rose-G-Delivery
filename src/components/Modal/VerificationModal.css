@@ -1,0 +1,73 @@
+.verificationModal__wrapper {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.verificationModal__container {
+  position: relative;
+  background-color: white;
+  border-radius: 20px;
+  max-width: 400px;
+  padding: 20px 10px;
+}
+.verificationModal__header {
+  padding: 10px 0;
+  border-bottom: 2px solid black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.verificationModal__header img {
+  width: 150px;
+  height: auto;
+  margin: 20px 0;
+}
+.verificationModal__close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 5px;
+  margin: 10px;
+}
+.verificationModal__close-btn button {
+  background: var(--background-color2);
+  border: none;
+  border-radius: 50%;
+  padding: 5px 10px;
+}
+.verificationModal__content p {
+  text-align: center;
+  margin: 20px 30px;
+}
+.verificationModal__actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.verificationModal__actions button {
+  width: 80%;
+  font-weight: 500;
+  background: var(--text-color1);
+  border: 1px solid grey;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin: 10px 0;
+}
+.verificationModal__actions button:nth-of-type(1) {
+  background: var(--background-color2);
+}
+.verificationModal__actions button a {
+  text-decoration: none;
+  color: var(--text-color2);
+  font-weight: 500;
+}

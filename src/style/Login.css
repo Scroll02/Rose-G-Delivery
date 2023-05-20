@@ -12,7 +12,7 @@
   border: 3px solid var(--background-color2);
   border-radius: 50px;
   background-color: var(--background-color1);
-  width: 40%;
+  width: 700px;
 }
 .login__container h5 {
   color: var(--background-color2);

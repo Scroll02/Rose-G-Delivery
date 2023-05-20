@@ -72,6 +72,7 @@ const FeedbackModal = ({
         uid: auth.currentUser.uid,
         firstName: orderData?.orderFirstName,
         lastName: orderData?.orderLastName,
+        profileImage: orderData?.customerProfileImg,
         rating: rating,
         message: message,
         hasReviewed: true, // Mark as reviewed

@@ -64,8 +64,8 @@ const Bag = () => {
   }, [dispatch, bagItems, bagProducts]);
   // console.log("Bag Items:", bagItems);
 
+  // Retrieve Delivery Fee Value
   const [deliveryFee, setDeliveryFee] = useState(0);
-
   useEffect(() => {
     const fetchDeliveryFee = async () => {
       const deliveryFeeRef = doc(db, "DeliveryFee", "deliveryFee");

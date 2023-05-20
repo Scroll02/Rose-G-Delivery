@@ -45,7 +45,6 @@ const Checkout = () => {
   //------------------ Retrieve User Data ------------------//
   const [userLoggedUid, setUserLoggedUid] = useState(null);
   const [userData, setUserData] = useState(null);
-
   const getUserData = () => {
     const userDataRef = collection(db, "UserData"); // getting the UserData collection
     const queryData = query(userDataRef, where("uid", "==", userLoggedUid));
@@ -61,7 +60,6 @@ const Checkout = () => {
       }
     });
   };
-
   useEffect(() => {
     getUserData();
   }, [userLoggedUid]);
@@ -115,6 +113,28 @@ const Checkout = () => {
       setCheckNewContactNumber(true);
     }
   };
+
+  // Retrieve Delivery Fee Value
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  useEffect(() => {
+    const fetchDeliveryFee = async () => {
+      const deliveryFeeRef = doc(db, "DeliveryFee", "deliveryFee");
+      const deliveryFeeDoc = await getDoc(deliveryFeeRef);
+      if (deliveryFeeDoc.exists()) {
+        const fee = deliveryFeeDoc.data().value;
+        setDeliveryFee(fee);
+      }
+    };
+
+    fetchDeliveryFee();
+  }, []);
+
+  // GCash
+  useEffect(() => {
+    if (paymentMethod === "GCash") {
+      window.open("https://paymongo.page/l/rose-garden", "_blank");
+    }
+  }, [paymentMethod]);
 
   // Save Button Function
   const handleSave = async (e) => {
@@ -177,6 +197,12 @@ const Checkout = () => {
       return;
     }
 
+    // If payment method is "GCash", check totalAmount
+    if (paymentMethod === "GCash" && bagTotalAmount < 100) {
+      showErrorToast("Minimum purchase amount for GCash is 100.", 2000);
+      return;
+    }
+
     const docRef = doc(
       collection(db, "UserOrders"),
       new Date().getTime().toString()
@@ -193,8 +219,10 @@ const Checkout = () => {
         orderContactNumber: userData?.contactNumber,
         orderFirstName: userData?.firstName,
         orderLastName: userData?.lastName,
+        customerProfileImg: userData?.profileImageUrl,
         orderUserId: auth.currentUser.uid,
         orderPayment: paymentMethod,
+        orderDeliveryFee: deliveryFee,
         // changeFor: changeFor,
       });
 
@@ -495,7 +523,13 @@ const Checkout = () => {
                   </span>
                 </h6>
                 <h6>
-                  Delivery Fee: <span>₱50.00</span>
+                  Delivery Fee:{" "}
+                  <span>
+                    ₱
+                    {parseFloat(deliveryFee)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  </span>
                 </h6>
                 <h6>
                   Total:
