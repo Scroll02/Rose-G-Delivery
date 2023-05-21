@@ -59,6 +59,7 @@
 .foodProduct_desc p {
   font-weight: 500;
   color: var(--text-color1);
+  font-size: 1.2rem;
 }
 .foodProduct_desc span {
   font-weight: 200;

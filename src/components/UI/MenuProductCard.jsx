@@ -93,45 +93,75 @@ const MenuProductCard = (props) => {
       });
   };
   return (
-    <div className="menu__productCards">
-      <div className="menu__singleProduct">
-        <div className="menu__productImg">
-          <Link to={`/productDetails/${id}`}>
-            <img
-              src={img}
-              alt="product-image"
-              className={`product-img ${productName.replace(/\s+/g, "")}`}
-            />
-          </Link>
-        </div>
-        <div className="menu__productContent">
-          <h6>
-            <Link to={`/productDetails/${id}`}>{productName}</Link>
-          </h6>
+    <>
+      <Link to={`/productDetails/${id}`} className="menu__productWrapper">
+        <div className="menu__productCards">
+          <div className="menu__singleProduct">
+            <div className="menu__productImg">
+              <Link to={`/productDetails/${id}`}>
+                <img
+                  src={img}
+                  alt="product-image"
+                  className={`product-img ${productName.replace(/\s+/g, "")}`}
+                />
+              </Link>
+            </div>
+            <div className="menu__productContent">
+              <h6>
+                <Link to={`/productDetails/${id}`}>{productName}</Link>
+              </h6>
 
-          <p className="menu__productDesc">{description}</p>
+              <p className="menu__productDesc">{description}</p>
 
-          <div className="menu__productFooter">
-            {/* <span className="menu__productPrice">
+              <div className="menu__productFooter">
+                {/* <span className="menu__productPrice">
               <span>₱{parseFloat(price).toFixed(2).toLocaleString("en")}</span>
             </span> */}
-            <span className="menu__productPrice">
-              <span class="menu__productPrice">
-                ₱
-                {parseFloat(price)
-                  .toFixed(2)
-                  .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-              </span>
-            </span>
+                <span className="menu__productPrice">
+                  <span class="menu__productPrice">
+                    ₱
+                    {parseFloat(price)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  </span>
+                </span>
 
-            {/* Add to Bag button */}
-            <button className="menu__orderBtn" onClick={addToBag}>
-              <i class="ri-shopping-bag-2-line"></i>
-            </button>
+                {/* Add to Bag button */}
+                <button className="menu__orderBtn" onClick={addToBag}>
+                  <i class="ri-shopping-bag-2-line"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </Link>
+    </>
+    // <div className="menu__productCards">
+    //   <Link to={`/productDetails/${id}`} className="menu__singleProduct">
+    //     <div className="menu__productImg">
+    //       <img
+    //         src={img}
+    //         alt="product-image"
+    //         className={`product-img ${productName.replace(/\s+/g, "")}`}
+    //       />
+    //     </div>
+    //     <div className="menu__productContent">
+    //       <h6>{productName}</h6>
+    //       <p className="menu__productDesc">{description}</p>
+    //       <div className="menu__productFooter">
+    //         <span className="menu__productPrice">
+    //           ₱
+    //           {parseFloat(price)
+    //             .toFixed(2)
+    //             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+    //         </span>
+    //         <button className="menu__orderBtn" onClick={addToBag}>
+    //           <i class="ri-shopping-bag-2-line"></i>
+    //         </button>
+    //       </div>
+    //     </div>
+    //   </Link>
+    // </div>
   );
 };
 

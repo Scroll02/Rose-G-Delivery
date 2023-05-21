@@ -7,7 +7,8 @@
 }
 .slider__header-title p span {
   color: var(--background-color2);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
 }
 .categoriesBtn__slides {
   /* position: relative; */

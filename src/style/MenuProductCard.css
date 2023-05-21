@@ -1,3 +1,11 @@
+.menu__productWrapper {
+  text-decoration: none;
+  color: inherit;
+}
+.menu__productWrapper:hover {
+  text-decoration: none;
+  color: inherit;
+}
 .menu__productCards {
   display: flex;
   flex-wrap: wrap;
@@ -18,9 +26,13 @@
   padding: 15px;
   flex: 1 1 auto;
   border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
 }
 .menu__singleProduct:hover {
   transform: scale(1.1);
+  text-decoration: none;
+  color: inherit;
 }
 
 .menu__productImg {

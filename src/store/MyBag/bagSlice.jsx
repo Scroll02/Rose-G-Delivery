@@ -137,6 +137,10 @@ const bagSlice = createSlice({
     setBagItems(state, action) {
       state.bagItems = action.payload;
     },
+
+    resetTotalQuantity(state) {
+      state.totalQuantity = 0;
+    },
   },
 
   // extraReducers: (builder) => {

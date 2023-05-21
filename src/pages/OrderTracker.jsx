@@ -4,15 +4,22 @@ import { Container, Row, Col } from "reactstrap";
 import { useParams, useNavigate } from "react-router-dom";
 import moment from "moment"; //date format
 
-import CheckCircle from "../assets/images/check_circle.png";
 import Circle from "../assets/images/circle-gray.png";
 import DottedLine from "../assets/images/dotted_line.png";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
-import CancelledImg from "../assets/images/cancel-order.svg";
 import { track_order_status } from "../globals/constant";
+
+// Modal
 import Modal from "../components/Modal/Modal";
+
 // Firebase
-import { collection, doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  updateDoc,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../firebase";
 
 // Toast
@@ -26,20 +33,22 @@ const OrderTracker = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
 
+  // Retrieve Order Data
   const [orderData, setOrderData] = useState(null);
-
   useEffect(() => {
     const getOrder = async () => {
       const orderRef = doc(collection(db, "UserOrders"), orderId);
-      const orderDoc = await getDoc(orderRef);
-      if (orderDoc.exists()) {
-        setOrderData(orderDoc.data());
-      }
+      const unsubscribe = onSnapshot(orderRef, (snapshot) => {
+        if (snapshot.exists()) {
+          setOrderData(snapshot.data());
+        }
+      });
+      return () => {
+        unsubscribe();
+      };
     };
     getOrder();
   }, [orderId]);
-
-  // console.log(getOrderData);
 
   const [currentStep, setCurrentStep] = useState("0");
   useEffect(() => {
@@ -59,6 +68,20 @@ const OrderTracker = () => {
     }
   }, [orderData]);
 
+  // Retrieve Delivery Fee Value
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  useEffect(() => {
+    const fetchDeliveryFee = async () => {
+      const deliveryFeeRef = doc(db, "DeliveryFee", "deliveryFee");
+      const deliveryFeeDoc = await getDoc(deliveryFeeRef);
+      if (deliveryFeeDoc.exists()) {
+        const fee = deliveryFeeDoc.data().value;
+        setDeliveryFee(fee);
+      }
+    };
+    fetchDeliveryFee();
+  }, []);
+
   // Cancel Button Function
   const handleCancel = async () => {
     try {
@@ -75,7 +98,7 @@ const OrderTracker = () => {
           await updateDoc(orderRef, { orderStatus: "Cancelled" });
           setCurrentStep(-1);
           showInfoToast("Your order has been cancelled.", 2000);
-          navigate("/menu");
+          navigate("/orders");
           // closeModal();
         }
       }
@@ -123,14 +146,21 @@ const OrderTracker = () => {
                   <span>{orderData?.orderAddress}</span>
                 </div>
 
-                <div className="order__details-item">
+                {orderData?.orderNote && orderData?.orderNote !== "" && (
+                  <div className="order__details-item">
+                    <p>Note:&nbsp;</p>
+                    <span>{orderData?.orderNote}</span>
+                  </div>
+                )}
+
+                {/* <div className="order__details-item">
                   <p>Delivery Rider:&nbsp;</p>
                   <span>
                     {orderData?.deliveryRiderInfo
                       ? orderData?.deliveryRiderInfo
                       : null}
                   </span>
-                </div>
+                </div> */}
               </div>
             </Row>
 
@@ -246,7 +276,13 @@ const OrderTracker = () => {
                   </span>
                 </h6>
                 <h6>
-                  Delivery Fee: <span>₱ 50.00</span>
+                  Delivery Fee:
+                  <span>
+                    ₱
+                    {parseFloat(deliveryFee)
+                      .toFixed(2)
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  </span>
                 </h6>
                 <h6>
                   Total:

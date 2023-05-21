@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { ListGroup } from "reactstrap";
 import "../style/Bag.css";
 import BagItem from "../components/UI/Bag/BagItem";
@@ -75,7 +75,6 @@ const Bag = () => {
         setDeliveryFee(fee);
       }
     };
-
     fetchDeliveryFee();
   }, []);
 

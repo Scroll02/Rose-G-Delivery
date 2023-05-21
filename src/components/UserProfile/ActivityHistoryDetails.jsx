@@ -145,6 +145,13 @@ const ActivityHistoryDetails = () => {
                     <label>Delivery Address:&nbsp;</label>
                     <span>{orderData?.orderAddress}</span>
                   </div>
+
+                  {orderData?.orderNote && orderData?.orderNote !== "" && (
+                    <div className="order__details-item">
+                      <p>Note:&nbsp;</p>
+                      <span>{orderData?.orderNote}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </Row>

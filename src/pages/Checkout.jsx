@@ -22,11 +22,10 @@ import {
   deleteDoc,
   serverTimestamp,
 } from "firebase/firestore";
-
 // Redux
 import { useSelector, useDispatch } from "react-redux";
 import { userLogInState, userLogOutState } from "../store/UserSlice/userSlice";
-
+import { bagActions } from "../store/MyBag/bagSlice";
 // Toast
 import {
   showSuccessToast,
@@ -38,6 +37,7 @@ const Checkout = () => {
   const bagItems = useSelector((state) => state.bag.bagItems);
   const bagSubTotalAmount = useSelector((state) => state.bag.subTotalAmount);
   const bagTotalAmount = useSelector((state) => state.bag.totalAmount);
+  const [orderNote, setOrderNote] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -219,16 +219,17 @@ const Checkout = () => {
         orderContactNumber: userData?.contactNumber,
         orderFirstName: userData?.firstName,
         orderLastName: userData?.lastName,
-        customerProfileImg: userData?.profileImageUrl,
+        customerProfileImg: userData?.profileImageUrl || "",
         orderUserId: auth.currentUser.uid,
         orderPayment: paymentMethod,
         orderDeliveryFee: deliveryFee,
+        orderNote: orderNote,
         // changeFor: changeFor,
       });
 
       showSuccessToast("Order placed", 2000);
       navigate("/orders");
-
+      dispatch(bagActions.resetTotalQuantity());
       // Delete the document to reset the bag
       const docRef2 = doc(collection(db, "UserBag"), auth.currentUser.uid);
       await deleteDoc(docRef2);
@@ -468,6 +469,8 @@ const Checkout = () => {
                     id="order__note"
                     className="orderNoteForm__input"
                     placeholder="Notes to the store/rider (optional)"
+                    value={orderNote}
+                    onChange={(e) => setOrderNote(e.target.value)}
                   />
                 </div>
               </div>

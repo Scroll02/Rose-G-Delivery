@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
 import DefaultAvatar from "../../assets/images/user-dark.png";
 import "../../style/Feedback.css";
-import { Row, Col } from "reactstrap";
 import Rating from "@mui/material/Rating";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import StarIcon from "@mui/icons-material/Star";
@@ -17,6 +16,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../../firebase";
+
 const Feedback = () => {
   // Retrieve Feedback Data
   const [feedbackData, setFeedbackData] = useState([]);
@@ -28,6 +28,10 @@ const Feedback = () => {
         id: doc.id,
         ...doc.data(),
       }));
+
+      // Sort feedbackDataList in descending order based on rating
+      feedbackDataList.sort((a, b) => b.rating - a.rating);
+
       setFeedbackData(feedbackDataList);
     });
     // Return the data realtime, reloading the page is not needed to reflect
