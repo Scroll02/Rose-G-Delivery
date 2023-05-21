@@ -17,7 +17,14 @@ import {
   sendEmailVerification,
   onAuthStateChanged,
 } from "firebase/auth";
-import { addDoc, collection, setDoc, doc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  setDoc,
+  doc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 
 // Toast
 import { showSuccessToast, showErrorToast } from "../components/Toast/Toast";
@@ -138,6 +145,7 @@ const Registration = () => {
         role: "Customer",
         uid: user.uid,
         emailVerified: "Not Verified",
+        createdAt: serverTimestamp(),
       });
 
       // Send email verification
@@ -191,6 +199,7 @@ const Registration = () => {
     signOut(auth);
   };
 
+  // Resend verification email function
   const resendVerificationEmail = async () => {
     try {
       const user = auth.currentUser;

@@ -143,7 +143,9 @@ const EditProfileDetails = ({
     if (newProfileImage) {
       const storageRef = ref(
         storage,
-        `userProfile_images/${userData.uid}/${newProfileImage.name}`
+        `userProfile_images/${userData.uid}/${new Date().getTime()}_${
+          newProfileImage.name
+        }`
       );
       const uploadTask = uploadBytesResumable(storageRef, newProfileImage);
 
