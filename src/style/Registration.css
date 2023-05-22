@@ -73,6 +73,8 @@
   font-size: 0.8rem !important;
   margin-top: 10px;
   background-color: red;
+  padding: 5px;
+  border-radius: 5px;
 }
 .customErrorMsg {
   color: var(--text-color1);

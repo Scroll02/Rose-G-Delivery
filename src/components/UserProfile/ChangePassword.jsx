@@ -6,7 +6,6 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 // Firebase
 import {
-  getAuth,
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -34,23 +33,32 @@ const ChangePassword = ({ userData, onSave }) => {
   const [newPasswordFocus, setNewPasswordFocus] = useState(false);
   const [cNewPasswordFocus, setCNewPasswordFocus] = useState(false);
 
+  // Validation
+  const [checkNewPassword, setCheckNewPassword] = useState(false);
+  const [checkNewCPassword, setCheckNewCPassword] = useState(false);
+  const handleCheckNewPassword = (text) => {
+    let regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$@!%&*?])[A-Za-z\d#$@!%&*?]{8,}$/;
+
+    setNewPassword(text);
+    if (regex.test(text)) {
+      setCheckNewPassword(false);
+    } else {
+      setCheckNewPassword(true);
+    }
+  };
+  const handleCheckNewCPassword = (text) => {
+    setCNewPassword(text);
+    if (newPassword !== text) {
+      setCheckNewCPassword(true);
+    } else {
+      setCheckNewCPassword(false);
+    }
+  };
+
   const [customErrorMsg, setCustomErrorMsg] = useState("");
 
   const handleSave = async () => {
-    if (newPassword !== cNewPassword) {
-      showErrorToast("New passwords do not match!");
-      return;
-    }
-    const regex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[#$@!%&*?])[A-Za-z\d#$@!%&*?]{8,}$/;
-
-    if (!regex.test(newPassword)) {
-      setCustomErrorMsg(
-        "The new password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one number, and one special character (# $ @ ! % & * ?)."
-      );
-      return;
-    }
-
     try {
       const user = auth.currentUser;
       const credential = EmailAuthProvider.credential(user.email, oldPassword);
@@ -70,7 +78,6 @@ const ChangePassword = ({ userData, onSave }) => {
           showErrorToast("An error occurred. Please try again later.");
           break;
       }
-      onSave();
     }
   };
 
@@ -126,7 +133,8 @@ const ChangePassword = ({ userData, onSave }) => {
               id="newPass__input"
               className="changePassForm__input"
               placeholder="Enter New Password"
-              onChange={(e) => setNewPassword(e.target.value)}
+              // onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(e) => handleCheckNewPassword(e.target.value)}
               onFocus={() => {
                 setOldPasswordFocus(false);
                 setNewPasswordFocus(true);
@@ -150,18 +158,28 @@ const ChangePassword = ({ userData, onSave }) => {
               )}
             </div>
           </div>
+          {/* Error Message */}
+          {checkNewPassword ? (
+            <label className="registration__errorMsg">
+              The new password must contain at least 8 characters, including at
+              least one uppercase letter, one lowercase letter, one number, and
+              one special character (# $ @ ! % & * ?).
+            </label>
+          ) : (
+            ""
+          )}
         </div>
 
         {/*------------------ Confirm New Password ----------------- */}
         <div className="changePassForm__group">
-          <label htmlFor="confirmNewPass__input">Confirm New Password;</label>
+          <label htmlFor="confirmNewPass__input">Confirm New Password:</label>
           <div className="changePass__input-container">
             <input
               type={showCNewPassword ? "text" : "password"}
               id="confirmNewPass__input"
               className="changePassForm__input"
               placeholder="Enter New Password"
-              onChange={(e) => setCNewPassword(e.target.value)}
+              onChange={(e) => handleCheckNewCPassword(e.target.value)}
               onFocus={() => {
                 setOldPasswordFocus(false);
                 setNewPasswordFocus(false);
@@ -184,6 +202,15 @@ const ChangePassword = ({ userData, onSave }) => {
               )}
             </div>
           </div>
+
+          {/* Error Message */}
+          {checkNewCPassword ? (
+            <label className="registration__errorMsg">
+              Confirm New Password do not match with New Password
+            </label>
+          ) : (
+            ""
+          )}
         </div>
       </form>
 
