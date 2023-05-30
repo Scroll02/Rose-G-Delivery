@@ -247,7 +247,6 @@ const Checkout = () => {
       // Retrieve payment data from Paymongo
       if (paymentMethod === "GCash") {
         const pageUrl = "https://paymongo.page/l/rose-garden";
-        const secretKey = "sk_live_qeC4ec8aCiir7yCJ81it3jmR";
 
         // Make a GET request to the Paymongo API to retrieve the page data
         const response = await axios.get(
@@ -301,7 +300,6 @@ const Checkout = () => {
 
   // Checking if the user is paid already or not
   const isPaymentComplete = async () => {
-    const secretKey = "sk_live_qeC4ec8aCiir7yCJ81it3jmR";
     const pageUrl = "https://paymongo.page/l/rose-garden";
 
     try {
