@@ -12,6 +12,8 @@ import userDarkIcon from "../../assets/images/user-dark.png";
 import settingIcon from "../../assets/images/setting.png";
 import logoutIcon from "../../assets/images/logout.png";
 import logoutDarkIcon from "../../assets/images/logout-dark.png";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import ShoppingCartTwoToneIcon from "@mui/icons-material/ShoppingCartTwoTone";
 
 // Firebase
 import { auth, db } from "../../firebase";
@@ -168,7 +170,7 @@ const Header = () => {
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
-        showSuccessToast("Logged out successfully", 1000);
+        showSuccessToast("Logged out successfully", 2000);
         navigate("/login");
       })
       .catch((error) => alert(error));
@@ -245,7 +247,7 @@ const Header = () => {
           <div className="nav__icons d-flex align-items-center gap-4">
             {/*------------------ Bag ------------------*/}
             <span className="bag__icon" onClick={toggleBag}>
-              <i class="ri-shopping-bag-2-line"></i>
+              <i class="ri-shopping-cart-2-line"></i>
               <span className="bag__badge">{totalQuantity}</span>
             </span>
 

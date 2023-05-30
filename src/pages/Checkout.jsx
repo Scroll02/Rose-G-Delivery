@@ -6,6 +6,7 @@ import DeliveryIcon from "../assets/images/delivery.png";
 import PurseIcon from "../assets/images/purse.png";
 import GCashIcon from "../assets/images/GCash.png";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
+import axios from "axios";
 // Navigation
 import { useNavigate } from "react-router-dom";
 // Firebase
@@ -129,13 +130,6 @@ const Checkout = () => {
     fetchDeliveryFee();
   }, []);
 
-  // GCash
-  useEffect(() => {
-    if (paymentMethod === "GCash") {
-      window.open("https://paymongo.page/l/rose-garden", "_blank");
-    }
-  }, [paymentMethod]);
-
   // Save Button Function
   const handleSave = async (e) => {
     e.preventDefault();
@@ -169,18 +163,27 @@ const Checkout = () => {
     setIsEditing(false);
   };
 
+  // Open new tab for paymongo if Gcash is selected and total amount > 100
+  useEffect(() => {
+    if (paymentMethod === "GCash" && bagTotalAmount >= 100) {
+      window.open("https://paymongo.page/l/rose-garden", "_blank");
+    } else if (paymentMethod === "GCash" && bagTotalAmount < 100) {
+      showErrorToast("Minimum purchase amount for GCash is ₱100.00.", 2000);
+    }
+  }, [paymentMethod]);
+
   // Place order button function
   const handlePlaceOrder = async () => {
-    // If bag is empty, they can't place order
+    // If bag is empty, they can't place an order
     if (bagItems.length === 0) {
       showErrorToast(
-        "Your bag is empty. Please add some items to place an order.",
+        "Your cart is empty. Please add some items to place an order.",
         2000
       );
       return;
     }
 
-    // Recipient details is required to place their order
+    // Recipient details are required to place the order
     if (
       !userData?.address ||
       !userData?.contactNumber ||
@@ -197,18 +200,23 @@ const Checkout = () => {
       return;
     }
 
-    // If payment method is "GCash", check totalAmount
-    if (paymentMethod === "GCash" && bagTotalAmount < 100) {
-      showErrorToast("Minimum purchase amount for GCash is 100.", 2000);
-      return;
-    }
-
     const docRef = doc(
       collection(db, "UserOrders"),
       new Date().getTime().toString()
     );
 
     try {
+      if (paymentMethod === "GCash") {
+        const isPaid = await isPaymentComplete();
+        if (!isPaid) {
+          showErrorToast(
+            "Please complete the GCash payment before placing your order.",
+            2000
+          );
+          return;
+        }
+      }
+
       await setDoc(docRef, {
         orderId: docRef.id,
         orderData: bagItems,
@@ -224,17 +232,116 @@ const Checkout = () => {
         orderPayment: paymentMethod,
         orderDeliveryFee: deliveryFee,
         orderNote: orderNote,
-        // changeFor: changeFor,
+        paymentStatus: "Pending", // Assume payment status is initially pending
+        paymentId: null,
       });
 
       showSuccessToast("Order placed", 2000);
       navigate("/orders");
       dispatch(bagActions.resetTotalQuantity());
+
       // Delete the document to reset the bag
       const docRef2 = doc(collection(db, "UserBag"), auth.currentUser.uid);
       await deleteDoc(docRef2);
+
+      // Retrieve payment data from Paymongo
+      if (paymentMethod === "GCash") {
+        const pageUrl = "https://paymongo.page/l/rose-garden";
+        const secretKey = "sk_live_qeC4ec8aCiir7yCJ81it3jmR";
+
+        // Make a GET request to the Paymongo API to retrieve the page data
+        const response = await axios.get(
+          `https://api.paymongo.com/v1/pages?url=${encodeURIComponent(
+            pageUrl
+          )}`,
+          {
+            headers: {
+              Authorization: `Bearer ${secretKey}`,
+            },
+          }
+        );
+
+        const pageData = response.data.data;
+        const { id: pageId } = pageData;
+
+        // Fetch the page details to get the list of payments
+        const paymentResponse = await axios.get(
+          `https://api.paymongo.com/v1/pages/${pageId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${secretKey}`,
+            },
+          }
+        );
+
+        const payments = paymentResponse.data.data.payments;
+        console.log("Page Data:", pageData);
+        console.log("Payments:", payments);
+
+        // Find the payment associated with the current user
+        const currentUserPayment = payments.find((payment) => {
+          return (
+            payment.attributes.email === userData?.email &&
+            payment.attributes.status === "paid"
+          );
+        });
+
+        if (currentUserPayment) {
+          // If the user has a successful payment, update the payment status in the order document
+          await updateDoc(docRef, {
+            paymentStatus: "Paid",
+            paymentId: currentUserPayment.id,
+          });
+        }
+      }
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  // Checking if the user is paid already or not
+  const isPaymentComplete = async () => {
+    const secretKey = "sk_live_qeC4ec8aCiir7yCJ81it3jmR";
+    const pageUrl = "https://paymongo.page/l/rose-garden";
+
+    try {
+      // Make a GET request to the Paymongo API to retrieve the page data
+      const response = await axios.get(
+        `https://api.paymongo.com/v1/pages?url=${encodeURIComponent(pageUrl)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+          },
+        }
+      );
+
+      const pageData = response.data.data;
+      const { id: pageId } = pageData;
+
+      // Fetch the page details to get the list of payments
+      const paymentResponse = await axios.get(
+        `https://api.paymongo.com/v1/pages/${pageId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+          },
+        }
+      );
+
+      const payments = paymentResponse.data.data.payments;
+
+      // Find the payment associated with the current user
+      const currentUserPayment = payments.find((payment) => {
+        return (
+          payment.attributes.email === userData?.email &&
+          payment.attributes.status === "paid"
+        );
+      });
+
+      return !!currentUserPayment; // Return true if the user has a successful payment, false otherwise
+    } catch (error) {
+      console.error(error);
+      return false;
     }
   };
 

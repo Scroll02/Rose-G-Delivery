@@ -5,30 +5,69 @@ import ProductCard from "./ProductCard";
 import { CustomNextArrow, CustomPrevArrow } from "../../globals/Slider";
 
 // Firebase
-import { collection, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+} from "firebase/firestore";
 import { db } from "../../firebase.js";
 
-const FeaturedProducts = ({ props }) => {
+const FeaturedProducts = () => {
   //------------------ Retrieve Food Data ------------------//
   const [productData, setProductData] = useState([]);
   useEffect(() => {
-    //LISTEN (REALTIME)
-    const unsub = onSnapshot(
-      collection(db, "ProductData"),
-      (snapShot) => {
-        let list = [];
-        snapShot.docs.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() });
+    const fetchData = async () => {
+      const salesReportsRef = collection(db, "SalesReports");
+      const salesReportsSnapshot = await getDocs(salesReportsRef);
+
+      let productTotals = {};
+      let products = [];
+
+      salesReportsSnapshot.forEach((doc) => {
+        const data = JSON.parse(doc.data().data); // Parse the data field
+
+        // Calculate totalSold for each product
+        data.forEach((product) => {
+          if (
+            product &&
+            product.productId &&
+            !isNaN(parseFloat(product.totalSold))
+          ) {
+            const productId = product.productId;
+            const totalSold = parseFloat(product.totalSold); // Parse totalSold as a number
+
+            if (productTotals.hasOwnProperty(productId)) {
+              productTotals[productId] += totalSold;
+            } else {
+              productTotals[productId] = totalSold;
+            }
+
+            // Store the product object
+            products.push(product);
+          }
         });
-        setProductData(list);
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
-    return () => {
-      unsub();
+      });
+
+      // Sort products based on totalSold in descending order
+      const sortedProducts = Object.keys(productTotals).sort(
+        (a, b) => productTotals[b] - productTotals[a]
+      );
+
+      // Get the top 10 products with the highest totalSold
+      const topProducts = sortedProducts.slice(0, 10);
+
+      // Retrieve the product objects for the top products
+      const bestSellingProducts = topProducts.map((productId) =>
+        products.find((product) => product.productId === productId)
+      );
+
+      setProductData(bestSellingProducts);
     };
+
+    fetchData();
   }, []);
 
   //------------------ Featured Products Slider ------------------//
@@ -76,9 +115,7 @@ const FeaturedProducts = ({ props }) => {
       <Slider {...settings}>
         {productData.map((item) => (
           <div className="ftProduct__item" key={item.productId}>
-            {/* <Col lg="12" key={item.productId}> */}
             <ProductCard item={item} />
-            {/* </Col> */}
           </div>
         ))}
       </Slider>

@@ -17,14 +17,7 @@ import {
   sendEmailVerification,
   onAuthStateChanged,
 } from "firebase/auth";
-import {
-  addDoc,
-  collection,
-  setDoc,
-  doc,
-  updateDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 
 // Toast
 import { showSuccessToast, showErrorToast } from "../components/Toast/Toast";

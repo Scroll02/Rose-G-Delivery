@@ -117,7 +117,14 @@
   background: var(--background-color2);
   border: none;
   color: #000000;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.menu__orderBtn span {
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 @media only screen and (min-width: 769px) {

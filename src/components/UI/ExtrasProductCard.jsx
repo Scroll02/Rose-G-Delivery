@@ -108,7 +108,8 @@ const ExtrasProductCard = (props) => {
             </span>
 
             <button className="extrasProduct__btn" onClick={addToBag}>
-              <i class="ri-shopping-bag-2-line"></i>
+              <i class="ri-shopping-cart-2-line"></i>
+              <span>+</span>
             </button>
           </div>
         </div>

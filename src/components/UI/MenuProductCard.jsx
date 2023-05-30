@@ -53,7 +53,7 @@ const MenuProductCard = (props) => {
           );
 
           if (itemExists) {
-            showInfoToast("The item is already in the bag");
+            showInfoToast("The item is already in the cart", 2000);
             return;
           }
         }
@@ -74,10 +74,10 @@ const MenuProductCard = (props) => {
 
         updatePromise
           .then(() => {
-            showSuccessToast("Item added to bag", 1000);
+            showSuccessToast("Item added to cart", 2000);
           })
           .catch((error) => {
-            showErrorToast(`Item is not added to bag: ${error}`, 1000);
+            showErrorToast(`Item is not added to cart: ${error}`, 2000);
           });
       })
       .catch((error) => {
@@ -85,10 +85,10 @@ const MenuProductCard = (props) => {
         setDoc(docRef, { bag: [newItem] })
           .then(() => {
             dispatch(bagActions.addItem(newItem));
-            showSuccessToast("Item added to bag", 1000);
+            showSuccessToast("Item added to cart", 2000);
           })
           .catch((error) => {
-            showErrorToast(`Item is not added to bag: ${error}`, 1000);
+            showErrorToast(`Item is not added to cart: ${error}`, 2000);
           });
       });
   };
@@ -128,7 +128,8 @@ const MenuProductCard = (props) => {
 
               {/* Add to Bag button */}
               <button className="menu__orderBtn" onClick={addToBag}>
-                <i class="ri-shopping-bag-2-line"></i>
+                <i class="ri-shopping-cart-2-line"></i>
+                <span>+</span>
               </button>
             </div>
           </div>

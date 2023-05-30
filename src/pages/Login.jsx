@@ -27,8 +27,8 @@ import {
   query,
   where,
   setDoc,
-  addDoc,
   updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 // Redux
@@ -192,6 +192,7 @@ const Login = () => {
             emailVerified: "Verified",
             uid: googleUid,
             role: "Customer",
+            createdAt: serverTimestamp(),
           });
         }
 
@@ -335,13 +336,13 @@ const Login = () => {
           </label>
         </div>
 
-        <label className="or__txt d-flex justify-content-center mb-2">OR</label>
+        {/* <label className="or__txt d-flex justify-content-center mb-2">OR</label> */}
 
         {/*------------------ Order As Guest Button ----------------- */}
-        <button className="guest__btn" onClick={handleOrderAsGuest}>
+        {/* <button className="guest__btn" onClick={handleOrderAsGuest}>
           <img className="btn__icon" src={peopleIcon} alt="btn-icon" />
           Order as Guest
-        </button>
+        </button> */}
       </div>
     </div>
   );

@@ -100,22 +100,22 @@ const ProductDetails = () => {
             bag: arrayUnion(data1),
           })
             .then(() => {
-              showSuccessToast("Item added to bag", 1000);
+              showSuccessToast("Item added to cart", 2000);
               navigate("/menu");
             })
             .catch((error) => {
-              showErrorToast(`Item is not added to bag: ${error}`, 1000);
+              showErrorToast(`Item is not added to cart: ${error}`, 2000);
             });
         } else {
           setDoc(docRef, {
             bag: [data1],
           })
             .then(() => {
-              showSuccessToast("Item added to bag", 1000);
+              showSuccessToast("Item added to cart", 2000);
               navigate("/menu");
             })
             .catch((error) => {
-              showErrorToast(`Item is not added to bag: ${error}`, 1000);
+              showErrorToast(`Item is not added to cart: ${error}`, 2000);
             });
         }
       })
@@ -158,10 +158,6 @@ const ProductDetails = () => {
                   <div className="mt-4">
                     <Row className="align-items-center">
                       <Col xs="auto">
-                        {/* <p className="foodProduct__price mb-0">
-                      <strong>Price:</strong> ₱
-                      {parseFloat(productData?.price).toFixed(2)}
-                    </p> */}
                         <p className="foodProduct__price mb-0">
                           <strong>Price:</strong>&nbsp; ₱
                           {parseFloat(productData?.price * quantity)
@@ -193,7 +189,7 @@ const ProductDetails = () => {
                     className="foodProduct__addBtn mt-4"
                     onClick={addToBag}
                   >
-                    Add to Bag
+                    Add to Cart
                   </button>
                 </div>
               </Col>

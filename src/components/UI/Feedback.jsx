@@ -87,7 +87,7 @@ const Feedback = () => {
             <div className="feedback__slides-item" key={feedback.uid}>
               <div className="feedback__content">
                 {feedback?.profileImageUrl ? (
-                  <img src={feedback?.profileImageUrl} alt="User Avatar" />
+                  <img src={feedback?.profileImage} alt="User Avatar" />
                 ) : (
                   <img src={DefaultAvatar} alt="Default Avatar" />
                 )}

@@ -5,7 +5,8 @@ import "../../style/ProductCard.css";
 import { Link } from "react-router-dom";
 
 const ProductCard = (props) => {
-  const { id, productName, img, price } = props.item;
+  const { productId, id, productName, img, price } = props.item;
+
   return (
     <div className="product__card">
       <div className="single__product">
