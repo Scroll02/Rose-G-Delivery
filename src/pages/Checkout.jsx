@@ -165,7 +165,7 @@ const Checkout = () => {
 
   // Open new tab for paymongo if Gcash is selected and total amount > 100
   useEffect(() => {
-    if (paymentMethod === "GCash" && bagTotalAmount >= 100) {
+    if (paymentMethod === "GCash" && bagTotalAmount > 100) {
       window.open("https://paymongo.page/l/rose-garden", "_blank");
     } else if (paymentMethod === "GCash" && bagTotalAmount < 100) {
       showErrorToast("Minimum purchase amount for GCash is ₱100.00.", 2000);
@@ -206,17 +206,6 @@ const Checkout = () => {
     );
 
     try {
-      if (paymentMethod === "GCash") {
-        const isPaid = await isPaymentComplete();
-        if (!isPaid) {
-          showErrorToast(
-            "Please complete the GCash payment before placing your order.",
-            2000
-          );
-          return;
-        }
-      }
-
       await setDoc(docRef, {
         orderId: docRef.id,
         orderData: bagItems,
@@ -243,103 +232,8 @@ const Checkout = () => {
       // Delete the document to reset the bag
       const docRef2 = doc(collection(db, "UserBag"), auth.currentUser.uid);
       await deleteDoc(docRef2);
-
-      // Retrieve payment data from Paymongo
-      if (paymentMethod === "GCash") {
-        const pageUrl = "https://paymongo.page/l/rose-garden";
-
-        // Make a GET request to the Paymongo API to retrieve the page data
-        const response = await axios.get(
-          `https://api.paymongo.com/v1/pages?url=${encodeURIComponent(
-            pageUrl
-          )}`,
-          {
-            headers: {
-              Authorization: `Bearer ${secretKey}`,
-            },
-          }
-        );
-
-        const pageData = response.data.data;
-        const { id: pageId } = pageData;
-
-        // Fetch the page details to get the list of payments
-        const paymentResponse = await axios.get(
-          `https://api.paymongo.com/v1/pages/${pageId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${secretKey}`,
-            },
-          }
-        );
-
-        const payments = paymentResponse.data.data.payments;
-        console.log("Page Data:", pageData);
-        console.log("Payments:", payments);
-
-        // Find the payment associated with the current user
-        const currentUserPayment = payments.find((payment) => {
-          return (
-            payment.attributes.email === userData?.email &&
-            payment.attributes.status === "paid"
-          );
-        });
-
-        if (currentUserPayment) {
-          // If the user has a successful payment, update the payment status in the order document
-          await updateDoc(docRef, {
-            paymentStatus: "Paid",
-            paymentId: currentUserPayment.id,
-          });
-        }
-      }
     } catch (error) {
       console.error(error);
-    }
-  };
-
-  // Checking if the user is paid already or not
-  const isPaymentComplete = async () => {
-    const pageUrl = "https://paymongo.page/l/rose-garden";
-
-    try {
-      // Make a GET request to the Paymongo API to retrieve the page data
-      const response = await axios.get(
-        `https://api.paymongo.com/v1/pages?url=${encodeURIComponent(pageUrl)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${secretKey}`,
-          },
-        }
-      );
-
-      const pageData = response.data.data;
-      const { id: pageId } = pageData;
-
-      // Fetch the page details to get the list of payments
-      const paymentResponse = await axios.get(
-        `https://api.paymongo.com/v1/pages/${pageId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${secretKey}`,
-          },
-        }
-      );
-
-      const payments = paymentResponse.data.data.payments;
-
-      // Find the payment associated with the current user
-      const currentUserPayment = payments.find((payment) => {
-        return (
-          payment.attributes.email === userData?.email &&
-          payment.attributes.status === "paid"
-        );
-      });
-
-      return !!currentUserPayment; // Return true if the user has a successful payment, false otherwise
-    } catch (error) {
-      console.error(error);
-      return false;
     }
   };
 

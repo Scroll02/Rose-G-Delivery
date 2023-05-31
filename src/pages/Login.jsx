@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../style/Login.css";
+import moment from "moment/moment";
 
 // Icons or  Images
 import registerIcon from "../assets/images/registered.png";
@@ -29,6 +30,7 @@ import {
   setDoc,
   updateDoc,
   serverTimestamp,
+  getDoc,
 } from "firebase/firestore";
 
 // Redux
@@ -90,19 +92,61 @@ const Login = () => {
   // Validation Error Messagge
   const [customErrorMsg, setCustomErrorMsg] = useState("");
 
+  // Update Activity Log Data once login
+  const updateActivityLog = async (uid, userData) => {
+    const startOfMonth = moment().startOf("month").toISOString();
+    const endOfMonth = moment().endOf("month").toISOString();
+    const monthDocumentId = moment().format("YYYY-MM");
+
+    const docRef = doc(db, "ActivityLog", monthDocumentId);
+    const docSnap = await getDoc(docRef);
+
+    const uniqueId = `${uid}-${Date.now()}`; // Generate a unique ID
+    const logData = {
+      id: uniqueId,
+      uid,
+      profileImageUrl: userData.profileImageUrl,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      lastLoginAt: userData.lastLoginAt,
+    };
+
+    const updatedLogData = { ...logData }; // Create a copy of logData
+
+    if (docSnap.exists()) {
+      const activityLogData = docSnap.data().activityLogData || [];
+      activityLogData.push(updatedLogData);
+      await updateDoc(docRef, { activityLogData });
+    } else {
+      await setDoc(docRef, { activityLogData: [updatedLogData] });
+    }
+  };
+
   // Sign Up Button Function
   const handleSignIn = (e) => {
     e.preventDefault();
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
-        // If email is verified, update emailVerified to "Verified"
+        // If email is verified, update emailVerified and lastLoginAt
         if (auth.currentUser.emailVerified) {
+          // Get the current date and time
+          const currentDate = new Date();
+          const lastLoginAt = currentDate.toISOString();
+
           // Update user data in Firestore
           const userDocRef = doc(db, "UserData", auth.currentUser.uid);
           updateDoc(userDocRef, {
             emailVerified: "Verified",
+            lastLoginAt: lastLoginAt, // Update lastLoginAt field
           })
-            .then(() => {
+            .then(async () => {
+              // Retrieve the user data for activity log
+              const userDoc = await getDoc(userDocRef);
+              const userData = userDoc.data();
+
+              // Update activity log
+              await updateActivityLog(auth.currentUser.uid, userData);
+
               showSuccessToast("Logged in successfully", 1000);
               navigate("/home");
               dispatch(fetchBagItems(auth.currentUser.uid));
@@ -183,7 +227,7 @@ const Login = () => {
 
         const querySnapshot = await getDocs(queryData);
         if (querySnapshot.empty) {
-          // user does not exist in database, so add a new document with document id and user id having the same value
+          // user does not exist in the database, so add a new document with document id and user id having the same value
           await setDoc(doc(userDataRef, googleUid), {
             fullName: displayName,
             firstName: firstName,
@@ -193,8 +237,23 @@ const Login = () => {
             uid: googleUid,
             role: "Customer",
             createdAt: serverTimestamp(),
+            lastLoginAt: new Date().toISOString(), // Set the initial value of lastLoginAt
+          });
+        } else {
+          // User already exists, so update the lastLoginAt field
+          const docRef = querySnapshot.docs[0].ref;
+          await updateDoc(docRef, {
+            lastLoginAt: new Date().toISOString(),
           });
         }
+
+        // Call the updateActivityLog function
+        await updateActivityLog(googleUid, {
+          profileImageUrl: "", // Add the profile image URL if available
+          firstName: firstName,
+          lastName: lastName,
+          lastLoginAt: new Date().toISOString(),
+        });
 
         showSuccessToast("Successfully sign-in using Google");
         navigate("/home");

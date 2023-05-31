@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../../style/Header.css";
+import moment from "moment";
 
 // Navigation
 import { NavLink, Link, useNavigate } from "react-router-dom";
@@ -24,6 +25,9 @@ import {
   getDocs,
   query,
   onSnapshot,
+  updateDoc,
+  getDoc,
+  doc,
 } from "firebase/firestore";
 
 // Redux
@@ -167,13 +171,52 @@ const Header = () => {
   }, []);
 
   //------------------ Sign Out Function ------------------//
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        showSuccessToast("Logged out successfully", 2000);
-        navigate("/login");
-      })
-      .catch((error) => alert(error));
+  const handleSignOut = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        // Retrieve the UserData document
+        const userDataRef = doc(db, "UserData", currentUser.uid);
+        const userDataDoc = await getDoc(userDataRef);
+        const userData = userDataDoc.data();
+        const lastLogoutAt = new Date().toISOString();
+
+        // Update lastLogoutAt field in UserData
+        await updateDoc(userDataRef, { lastLogoutAt });
+
+        // Update lastLogoutAt field in ActivityLog
+        const startOfMonth = moment().startOf("month").toISOString();
+        const endOfMonth = moment().endOf("month").toISOString();
+        const monthDocumentId = moment().format("YYYY-MM");
+
+        const activityLogRef = doc(db, "ActivityLog", monthDocumentId);
+        const activityLogDoc = await getDoc(activityLogRef);
+
+        if (activityLogDoc.exists()) {
+          const activityLogData = activityLogDoc.data().activityLogData || [];
+
+          // Find the login entry to update
+          const entryToUpdate = activityLogData.find(
+            (entry) => entry.uid === currentUser.uid && !entry.lastLogoutAt
+          );
+
+          if (entryToUpdate) {
+            // Update the entry with the lastLogoutAt value
+            entryToUpdate.lastLogoutAt = lastLogoutAt;
+
+            // Update the activityLogData field in ActivityLog
+            await updateDoc(activityLogRef, { activityLogData });
+          }
+        }
+      }
+
+      await signOut(auth);
+      showSuccessToast("Logged out successfully", 2000);
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+      alert("An error occurred while logging out. Please try again.");
+    }
   };
 
   //------------------ User Profile Drop Down Links ------------------//
