@@ -20,15 +20,22 @@ import {
 } from "../Toast/Toast";
 
 const MenuProductCard = (props) => {
-  const { id, productName, img, description, price } = props.item;
+  const {
+    id,
+    productName,
+    img,
+    description,
+    price,
+    currentStock,
+    initialStock,
+  } = props.item;
 
   //------------------ Navigation ------------------//
   const navigate = useNavigate();
 
-  //------------------ Add to Bag Function ------------------//
+  //------------------ Add to Cart Function ------------------//
   const dispatch = useDispatch();
-
-  const addToBag = () => {
+  const addToCart = () => {
     if (!auth.currentUser) {
       showErrorToast("You need to login first", 2000);
       return;
@@ -92,6 +99,7 @@ const MenuProductCard = (props) => {
           });
       });
   };
+
   return (
     <>
       {/* <Link to={`/productDetails/${id}`} className="menu__productWrapper"> </Link> */}
@@ -114,9 +122,6 @@ const MenuProductCard = (props) => {
             <p className="menu__productDesc">{description}</p>
 
             <div className="menu__productFooter">
-              {/* <span className="menu__productPrice">
-              <span>₱{parseFloat(price).toFixed(2).toLocaleString("en")}</span>
-            </span> */}
               <span className="menu__productPrice">
                 <span class="menu__productPrice">
                   ₱
@@ -127,10 +132,16 @@ const MenuProductCard = (props) => {
               </span>
 
               {/* Add to Bag button */}
-              <button className="menu__orderBtn" onClick={addToBag}>
-                <i class="ri-shopping-cart-2-line"></i>
-                <span>+</span>
-              </button>
+              {currentStock === 0 || initialStock === 0 ? (
+                <button className="menu__orderBtn" disabled>
+                  <label>Out of stock</label>
+                </button>
+              ) : (
+                <button className="menu__orderBtn" onClick={addToCart}>
+                  <i class="ri-shopping-cart-2-line"></i>
+                  <span>+</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

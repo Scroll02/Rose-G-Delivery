@@ -5,8 +5,12 @@ import CheckingDetails from "../assets/images/profile-details.svg";
 import DeliveryIcon from "../assets/images/delivery.png";
 import PurseIcon from "../assets/images/purse.png";
 import GCashIcon from "../assets/images/GCash.png";
+import SelfPickUpIcon from "../assets/images/self-pickup.png";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
 import axios from "axios";
+import { createWebhook, webhookHandler } from "../api/paymongo_webhook";
+import retrieveCheckoutSession from "../api/paymongo_retrieve";
+import AvailabilityModal from "../components/Modal/AvailabilityModal";
 // Navigation
 import { useNavigate } from "react-router-dom";
 // Firebase
@@ -163,16 +167,152 @@ const Checkout = () => {
     setIsEditing(false);
   };
 
-  // Open new tab for paymongo if Gcash is selected and total amount > 100
+  // Pre-built PayMongo Checkout Function
+  const createPayMongoCheckoutSession = async () => {
+    const lineItems = bagItems.map((item) => ({
+      currency: "PHP",
+      name: item.productName,
+      amount: Math.ceil(item.price * 100),
+      quantity: item.productQty,
+      images: [item.img],
+    }));
+    const options = {
+      method: "POST",
+      url: "https://api.paymongo.com/v1/checkout_sessions",
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+        authorization: "Basic c2tfdGVzdF9pMVk0M25EeFZ5akRDTmFEdzc5NkhQaHg6",
+      },
+      data: {
+        data: {
+          attributes: {
+            line_items: [
+              ...lineItems,
+              {
+                currency: "PHP",
+                name: "Delivery Fee",
+                amount: Math.ceil(deliveryFee * 100),
+                quantity: 1,
+                images: [
+                  "https://images.squarespace-cdn.com/content/v1/5f689f9c78917549d34f2a44/1671978785227-IAROT3KQV4CUVR61I7WH/delivery-scooter-icon-svg-download.png",
+                ],
+              },
+            ],
+            payment_method_types: ["gcash"],
+            send_email_receipt: true,
+            show_description: false,
+            show_line_items: true,
+            cancel_url: "http://localhost:3000/checkout",
+            success_url: "http://localhost:3000/home",
+          },
+        },
+      },
+    };
+
+    try {
+      const response = await axios.request(options);
+      console.log("Create Checkout Session: ", response); // Log the response to check its structure
+
+      const checkoutSessionId = response.data.data.id;
+      const checkoutUrl = response.data.data.attributes.checkout_url;
+      if (checkoutUrl) {
+        // Redirect to the pre-built checkout page
+        // window.location.replace(checkoutUrl);
+        // window.open(checkoutUrl, "_blank");
+
+        retrieveCheckoutSession(checkoutSessionId);
+      } else {
+        console.error("checkoutUrl is undefined in the response");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    // Call the webhookHandler when the component is mounted
+    webhookHandler();
+  }, []);
+
+  // Redirect to paymongo checkout page if Gcash is selected and total amount > 100
   useEffect(() => {
     if (paymentMethod === "GCash" && bagTotalAmount > 100) {
-      window.open("https://paymongo.page/l/rose-garden", "_blank");
+      createPayMongoCheckoutSession();
+      // createWebhook();
+      webhookHandler();
     } else if (paymentMethod === "GCash" && bagTotalAmount < 100) {
       showErrorToast("Minimum purchase amount for GCash is ₱100.00.", 2000);
     }
   }, [paymentMethod]);
 
   // Place order button function
+  // const handlePlaceOrder = async () => {
+  //   // If bag is empty, they can't place an order
+  //   if (bagItems.length === 0) {
+  //     showErrorToast(
+  //       "Your cart is empty. Please add some items to place an order.",
+  //       2000
+  //     );
+  //     return;
+  //   }
+
+  //   // Recipient details are required to place the order
+  //   if (
+  //     !userData?.address ||
+  //     !userData?.contactNumber ||
+  //     !userData?.firstName ||
+  //     !userData?.lastName
+  //   ) {
+  //     showErrorToast("Please fill in all the recipient details.", 2000);
+  //     return;
+  //   }
+
+  //   // If any payment method is not selected, they can't place their order
+  //   if (!paymentMethod) {
+  //     showErrorToast("Please select a payment method.", 2000);
+  //     return;
+  //   }
+
+  //   if (paymentMethod === "GCash" && bagTotalAmount > 100) {
+  //     createWebhook();
+  //   }
+
+  //   const docRef = doc(
+  //     collection(db, "UserOrders"),
+  //     new Date().getTime().toString()
+  //   );
+
+  //   try {
+  //     await setDoc(docRef, {
+  //       orderId: docRef.id,
+  //       orderData: bagItems,
+  //       orderStatus: "Pending",
+  //       orderTotalCost: bagTotalAmount,
+  //       orderDate: serverTimestamp(),
+  //       orderAddress: userData?.address,
+  //       orderContactNumber: userData?.contactNumber,
+  //       orderFirstName: userData?.firstName,
+  //       orderLastName: userData?.lastName,
+  //       customerProfileImg: userData?.profileImageUrl || "",
+  //       orderUserId: auth.currentUser.uid,
+  //       orderPayment: paymentMethod,
+  //       orderDeliveryFee: deliveryFee,
+  //       orderNote: orderNote,
+  //       paymentStatus: paymentMethod === "GCash" ? "Paid" : "Pending",
+  //       paymentId: null,
+  //     });
+
+  //     showSuccessToast("Order placed", 2000);
+  //     navigate("/orders");
+  //     dispatch(bagActions.resetTotalQuantity());
+
+  //     // Delete the document to reset the bag
+  //     const docRef2 = doc(collection(db, "UserBag"), auth.currentUser.uid);
+  //     await deleteDoc(docRef2);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
   const handlePlaceOrder = async () => {
     // If bag is empty, they can't place an order
     if (bagItems.length === 0) {
@@ -200,6 +340,35 @@ const Checkout = () => {
       return;
     }
 
+    // Check product availability and quantity restrictions
+    for (const item of bagItems) {
+      const productDocRef = doc(db, "ProductData", item.productId);
+      const productDocSnap = await getDoc(productDocRef);
+      const productData = productDocSnap.data();
+
+      if (productData) {
+        const { currentStock, initialStock, productName } = productData;
+        const isPalabokAndPax =
+          productName.includes("Palabok") && productName.includes("pax");
+
+        if (isPalabokAndPax && item.productQty > 5) {
+          // Display availability modal
+          setShowAvailabilityModal(true);
+          return;
+        }
+
+        if (item.productQty > currentStock || item.productQty > initialStock) {
+          // Display availability modal
+          setShowAvailabilityModal(true);
+          return;
+        }
+      }
+    }
+
+    if (paymentMethod === "GCash" && bagTotalAmount > 100) {
+      createWebhook();
+    }
+
     const docRef = doc(
       collection(db, "UserOrders"),
       new Date().getTime().toString()
@@ -221,7 +390,7 @@ const Checkout = () => {
         orderPayment: paymentMethod,
         orderDeliveryFee: deliveryFee,
         orderNote: orderNote,
-        paymentStatus: "Pending", // Assume payment status is initially pending
+        paymentStatus: paymentMethod === "GCash" ? "Paid" : "Pending",
         paymentId: null,
       });
 
@@ -237,9 +406,19 @@ const Checkout = () => {
     }
   };
 
+  // Modal
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const closeAvalabilityModal = () => {
+    setShowAvailabilityModal(false);
+  };
+
   return (
     <section>
       <Container>
+        {showAvailabilityModal && (
+          <AvailabilityModal closeAvalabilityModal={closeAvalabilityModal} />
+        )}
+        {/* <button onClick={() => setShowAvailabilityModal(true)}>click me</button> */}
         <TitlePageBanner title="Check Out" />
         <Row>
           {/*------------------ Left Side ----------------- */}
@@ -399,7 +578,7 @@ const Checkout = () => {
                 </h6>
                 <form>
                   {/* Cash on pickup */}
-                  <div className="paymentMethod__group">
+                  {/* <div className="paymentMethod__group">
                     <input
                       type="radio"
                       id="cashOnPickup"
@@ -415,6 +594,26 @@ const Checkout = () => {
                         className="radio__icon"
                       />
                       Cash On PickUp
+                    </label>
+                  </div> */}
+
+                  {/* Cash on pickup */}
+                  <div className="paymentMethod__group">
+                    <input
+                      type="radio"
+                      id="cashOnPickup"
+                      value="Cash On PickUp"
+                      name="type"
+                      onChange={handlePaymentMethodChange}
+                      checked={paymentMethod === "Cash On PickUp"}
+                    />
+                    <label htmlFor="cashOnPickup">
+                      <img
+                        src={SelfPickUpIcon}
+                        alt="Purse icon"
+                        className="radio__icon"
+                      />
+                      Self PickUp
                     </label>
                   </div>
 

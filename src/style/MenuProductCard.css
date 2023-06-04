@@ -45,11 +45,7 @@
 .menu__productImg img {
   display: block;
   object-fit: contain;
-  /* object-fit: cover; */
-
   margin: auto;
-  /* width: 100%; */
-  /* height: 100px; */
   width: 100%;
   height: 100px;
 }
@@ -126,6 +122,10 @@
   font-size: 1rem;
   font-weight: 700;
 }
+.menu__orderBtn label {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
 
 @media only screen and (min-width: 769px) {
   .menu__productCards {
@@ -146,5 +146,18 @@
   .menu__productImg img {
     width: 50%;
     height: 100px;
+  }
+  .menu__productPrice,
+  .menu__orderBtn {
+    display: inline-block;
+    margin: 0 5px 0 5px;
+  }
+  .menu__productPrice {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .menu__orderBtn {
+    padding: 7px 15px;
+    font-size: 0.9rem;
   }
 }

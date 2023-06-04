@@ -1,0 +1,72 @@
+.availabilityModal__wrapper {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.availabilityModal__container {
+  position: relative;
+  background-color: white;
+  border-radius: 20px;
+  max-width: 500px;
+  padding: 50px 10px;
+}
+
+.availabilityModal__header {
+  padding: 10px 0;
+  border-bottom: 2px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.availabilityModal__close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 5px;
+  margin: 10px;
+}
+
+.availabilityModal__close-btn button {
+  background: var(--background-color2);
+  border: none;
+  border-radius: 50%;
+  padding: 5px 10px;
+}
+
+.availabilityModal__content p {
+  color: var(--text-color2);
+  margin: 20px 20px;
+  text-align: center;
+}
+
+.contactUs__item {
+  text-align: center;
+  margin: 10px 0;
+}
+.contactUs__item i {
+  font-size: 1.5rem;
+  color: var(--background-color1);
+}
+.contactUs__item span,
+.contactUs__item a {
+  padding: 0 10px;
+  vertical-align: 6px;
+  text-decoration: none;
+  color: var(--text-color2);
+  border-bottom: 1px solid var(--text-color2);
+  border-bottom-color: var(--background-color1);
+}
+.contactUs__item span:hover,
+.contactUs__item a:hover {
+  color: var(--background-color1);
+}

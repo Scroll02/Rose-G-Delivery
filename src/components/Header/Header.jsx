@@ -211,7 +211,7 @@ const Header = () => {
       }
 
       await signOut(auth);
-      showSuccessToast("Logged out successfully", 2000);
+      showSuccessToast("You've successfully logged out", 2000);
       navigate("/login");
     } catch (error) {
       console.log(error);
@@ -278,9 +278,6 @@ const Header = () => {
                 >
                   Login
                 </NavLink>
-                {/* <NavLink to="/registration"  className={(navClass) => (navClass.isActive ? "active__menu" : "")}>
-                Sign up
-              </NavLink> */}
               </>
             )}
           </div>

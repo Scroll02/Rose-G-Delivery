@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { ListGroupItem } from "reactstrap";
 import "../../../style/Bag-Item.css";
-
 // Firebase
 import { auth, db } from "../../../firebase";
 import { deleteDoc, getDoc, updateDoc, doc } from "firebase/firestore";
-
 // Redux
 import { useDispatch, useSelector } from "react-redux";
 import { bagActions } from "../../../store/MyBag/bagSlice";
@@ -24,6 +22,56 @@ const BagItem = ({ item }) => {
 
   //------------------ Increment Item Function ------------------//
   const [isUpdating, setIsUpdating] = useState(false);
+  const [inputQuantity, setInputQuantity] = useState(productQty.toString());
+
+  //------------------ Update Item Quantity Function ------------------//
+  const updateItemQuantity = async (newQuantity) => {
+    if (isUpdating) {
+      return;
+    }
+    setIsUpdating(true);
+
+    const parsedQuantity = parseInt(newQuantity, 10); // Parse the string as an integer
+
+    const userBagRef = doc(db, "UserBag", auth.currentUser.uid);
+    const userBagData = await getDoc(userBagRef);
+
+    const updatedBag = userBagData.data().bag.map((item) => {
+      if (item.productId === productId) {
+        return {
+          ...item,
+          productQty: parsedQuantity,
+          totalPrice: Number(item.price) * parsedQuantity,
+        };
+      } else {
+        return item;
+      }
+    });
+
+    await updateDoc(userBagRef, {
+      bag: updatedBag,
+    });
+
+    setIsUpdating(false);
+
+    dispatch(
+      bagActions.updateItemQuantity({
+        productId: productId,
+        newQuantity: parsedQuantity,
+      })
+    );
+  };
+
+  const handleInputChange = (e) => {
+    const newQuantity = e.target.value;
+    setInputQuantity(newQuantity);
+    if (newQuantity.trim() === "") {
+      updateItemQuantity(1); // Set default value if the input is empty
+    } else {
+      updateItemQuantity(newQuantity);
+    }
+  };
+
   const incrementItem = async () => {
     if (isUpdating) {
       return;
@@ -123,16 +171,25 @@ const BagItem = ({ item }) => {
         {/* Product Image */}
         <img src={item.img} alt="Product Image" />
 
-        <div className="bag__product-info w-100 d-flex align-items-center gap-4 justify-content-between">
+        <div className="bag__product-info w-100 d-flex align-items-center gap-5 justify-content-between">
           <div>
             {/* Product Name */}
             <h6 className="bag__product-title">{item.productName}</h6>
-            <p className="d-flex align-items-center gap-5 ">
-              <div className="d-flex align-items-center gap-3 increase__decrease-btn">
+            <p className="d-flex align-items-center gap-5">
+              <div className="d-flex align-items-center gap-2 increase__decrease-btn">
                 {/* Increase Button */}
                 <span className="increase__btn" onClick={incrementItem}>
                   <i class="ri-add-circle-fill"></i>
                 </span>
+
+                {/* Product Quantity */}
+                {/* <input
+                  type="number"
+                  min="1"
+                  value={inputQuantity}
+                  onChange={handleInputChange}
+                  className="bagQuantity__input"
+                /> */}
 
                 {/* Product Quantity */}
                 <span className="quantity__title">{productQty}</span>

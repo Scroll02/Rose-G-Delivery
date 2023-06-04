@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import moment from "moment/moment";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
 import OrderNowImg from "../assets/images/order-now.png";
-
+import AvailabilityModal from "../components/Modal/AvailabilityModal";
 // Firebase
 import { auth, db } from "../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
@@ -49,6 +49,12 @@ const Orders = () => {
     };
   }, []);
   // console.log(orderData);
+
+  // Modal
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const closeAvalabilityModal = () => {
+    setShowAvailabilityModal(false);
+  };
 
   return (
     <main>

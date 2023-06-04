@@ -171,7 +171,7 @@ const Menu = () => {
                 }
               })
               .map((item) => (
-                <Col lg="4" md="6" sm="6" key={item.id}>
+                <Col lg="4" md="6" sm="6" xs="6" key={item.id}>
                   <MenuProductCard item={item} />
                 </Col>
               ))}

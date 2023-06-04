@@ -81,7 +81,8 @@
   color: var(--text-color1);
   vertical-align: 8px;
 }
-.contact__us-item span:hover {
+.contact__us-item span:hover,
+.contact__us-item span a:hover {
   color: var(--background-color2);
 }
 

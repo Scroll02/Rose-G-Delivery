@@ -147,7 +147,7 @@ const Login = () => {
               // Update activity log
               await updateActivityLog(auth.currentUser.uid, userData);
 
-              showSuccessToast("Logged in successfully", 1000);
+              showSuccessToast("You've successfully logged in", 1000);
               navigate("/home");
               dispatch(fetchBagItems(auth.currentUser.uid));
               // Prevent user from going back to login page
@@ -255,7 +255,7 @@ const Login = () => {
           lastLoginAt: new Date().toISOString(),
         });
 
-        showSuccessToast("Successfully sign-in using Google");
+        showSuccessToast("You've successfully logged in using Google");
         navigate("/home");
         dispatch(setSignInClicked(true));
       })

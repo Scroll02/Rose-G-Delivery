@@ -100,6 +100,17 @@
   font-size: 1.5rem;
   text-shadow: 2px 2px 2px var(--background-color1);
 }
+.quantity__input {
+  padding: 0.2rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--text-color1);
+  box-shadow: 3px 3px var(--background-color2);
+  color: var(--text-color2);
+  font-size: 1rem;
+  transition: border-color 0.2s ease-in-out;
+  width: 30%;
+  box-sizing: border-box;
+}
 
 /*Customize Your Order */
 .customize__order {

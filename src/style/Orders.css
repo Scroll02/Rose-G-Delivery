@@ -72,11 +72,11 @@ h4.confirmed {
   margin-top: 20px;
 }
 .order__now img {
-  width: 400px;
+  width: 35%;
   height: auto;
 }
 .order__now h1 {
   font-weight: 500;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   color: var(--text-color1);
 }

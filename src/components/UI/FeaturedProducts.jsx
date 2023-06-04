@@ -5,14 +5,7 @@ import ProductCard from "./ProductCard";
 import { CustomNextArrow, CustomPrevArrow } from "../../globals/Slider";
 
 // Firebase
-import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  limit,
-  getDocs,
-} from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase.js";
 
 const FeaturedProducts = () => {

@@ -7,7 +7,7 @@ import ExtrasProductList from "../components/UI/ExtrasProductList";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Redux
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { bagActions } from "../store/MyBag/bagSlice";
 
 // Icons or Images
@@ -19,19 +19,22 @@ import { getDoc, setDoc, arrayUnion, updateDoc, doc } from "firebase/firestore";
 import { db, auth } from "../firebase.js";
 
 // Toast
-import { showSuccessToast, showErrorToast } from "../components/Toast/Toast";
+import {
+  showSuccessToast,
+  showErrorToast,
+  showInfoToast,
+} from "../components/Toast/Toast";
 
 const ProductDetails = () => {
   //------------------ Get Document ID of the selected food ------------------//
   const { id } = useParams();
-  // console.log(id);
+  const bagItems = useSelector((state) => state.bag.bagItems);
 
   //------------------ Navigation ------------------//
   const navigate = useNavigate();
 
   //------------------ Retrieve Food Data ------------------//
   const [productData, setProductData] = useState();
-
   const getProductData = async () => {
     const docRef = doc(db, "ProductData", id);
     const docSnap = await getDoc(docRef);
@@ -44,18 +47,21 @@ const ProductDetails = () => {
       console.log("No such document!");
     }
   };
-
   useEffect(() => {
     getProductData();
   }, [id]);
 
   // Food Quantity
   const [quantity, setQuantity] = useState(1);
-
+  const handleQuantityChange = (event) => {
+    const newQuantity = parseInt(event.target.value, 10);
+    if (!isNaN(newQuantity) && newQuantity >= 1) {
+      setQuantity(newQuantity);
+    }
+  };
   const handleIncrease = () => {
     setQuantity(quantity + 1);
   };
-
   const handleDecrease = () => {
     if (quantity > 1) {
       setQuantity(quantity - 1);
@@ -64,21 +70,30 @@ const ProductDetails = () => {
 
   //------------------ Add to Bag Function ------------------//
   const dispatch = useDispatch();
-  // Firebase
-  const addToBag = () => {
+  const addToCart = () => {
     if (!auth.currentUser) {
       showErrorToast("You need to login first", 2000);
       return;
     }
-    dispatch(
-      bagActions.addItem({
-        productId: id,
-        productName: productData?.productName,
-        img: productData?.img,
-        price: productData?.price,
-        productQty: quantity,
-      })
-    );
+
+    const newItem = {
+      productId: id,
+      productName: productData?.productName,
+      img: productData?.img,
+      price: productData?.price,
+      productQty: quantity,
+    };
+
+    // Check if item already exists in the bag
+    const isItemAlreadyInBag = bagItems.some((item) => item.productId === id);
+
+    if (isItemAlreadyInBag) {
+      showInfoToast("The item is already in your cart", 2000);
+      return;
+    }
+
+    dispatch(bagActions.addItem(newItem));
+
     const totalPrice = productData?.price * quantity;
 
     // Add item to firebase
@@ -131,12 +146,15 @@ const ProductDetails = () => {
           <Col className="container__leftCol" lg="12">
             <Row>
               <Col>
-                <div className="foodProduct__image">
+                <div className="foodProduct__image" lg="6" md="12">
                   <img src={productData?.img} alt="product-img" />
                 </div>
               </Col>
 
-              <Col className="d-flex align-items-center justify-content-center">
+              <Col
+                className="d-flex align-items-center justify-content-center"
+                lg="6"
+              >
                 <div className="single__product-content">
                   <h2 className="foodProduct__title mb-3">
                     {productData?.productName}
@@ -173,7 +191,13 @@ const ProductDetails = () => {
                           >
                             <RemoveCircleOutlineOutlinedIcon />
                           </button>
-                          <span className="quantity__label">{quantity}</span>
+                          <input
+                            type="number"
+                            className="quantity__input"
+                            value={quantity}
+                            onChange={handleQuantityChange}
+                          />
+                          {/* <span className="quantity__label">{quantity}</span> */}
                           <button
                             className="quantity__btn"
                             onClick={handleIncrease}
@@ -185,12 +209,19 @@ const ProductDetails = () => {
                     </Row>
                   </div>
 
-                  <button
-                    className="foodProduct__addBtn mt-4"
-                    onClick={addToBag}
-                  >
-                    Add to Cart
-                  </button>
+                  {productData?.currentStock === 0 ||
+                  productData?.initialStock === 0 ? (
+                    <button className="foodProduct__addBtn mt-4" disabled>
+                      Out of Stock
+                    </button>
+                  ) : (
+                    <button
+                      className="foodProduct__addBtn mt-4"
+                      onClick={addToCart}
+                    >
+                      Add to Cart
+                    </button>
+                  )}
                 </div>
               </Col>
             </Row>

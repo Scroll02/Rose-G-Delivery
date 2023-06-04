@@ -18,6 +18,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import UserProfile from "../pages/UserProfile";
 import ActivityHistoryDetails from "../components/UserProfile/ActivityHistoryDetails";
 import Settings from "../pages/Settings";
+import { createWebhook } from "../api/paymongo_webhook";
 
 const Routers = () => {
   return (
@@ -41,6 +42,7 @@ const Routers = () => {
         element={<ActivityHistoryDetails />}
       />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/webhook" element={<createWebhook />} />
     </Routes>
   );
 };

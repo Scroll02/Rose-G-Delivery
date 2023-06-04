@@ -72,17 +72,29 @@ const Footer = () => {
 
               <ListGroupItem className="contact__us-item border-0 ps-0">
                 <i class="ri-phone-line"></i>
-                <span>09123123123</span>
+                <span>0917-994-7550</span>
               </ListGroupItem>
 
               <ListGroupItem className="contact__us-item border-0 ps-0">
                 <i class="ri-mail-line"></i>
-                <span>rose.g.special@gmail.com</span>
+                <span>
+                  <a href="mailto:rose.g.special@gmail.com">
+                    rose.g.special@gmail.com
+                  </a>
+                </span>
               </ListGroupItem>
               <ListGroupItem className="contact__us-item border-0 ps-0">
                 <a href="https://www.facebook.com/profile.php?id=100063606564417">
                   <i class="ri-facebook-circle-line"></i>
-                  <span>facebook</span>
+                  <span>
+                    <a
+                      href="https://www.facebook.com/people/Rose-Garden-Special-Palabok/100063606564417/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Rose Garden Special Palabok
+                    </a>
+                  </span>
                 </a>
               </ListGroupItem>
             </ListGroup>
