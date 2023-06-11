@@ -1,16 +1,29 @@
 import React, { useState, useEffect } from "react";
 import "../style/Orders.css";
 import { Container, Row, Col } from "reactstrap";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import moment from "moment/moment";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
 import OrderNowImg from "../assets/images/order-now.png";
-import AvailabilityModal from "../components/Modal/AvailabilityModal";
+
 // Firebase
 import { auth, db } from "../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 const Orders = () => {
+  const location = useLocation();
+  const fromCheckout = new URLSearchParams(location.search).get("fromCheckout");
+  const paymentMethod = new URLSearchParams(location.search).get(
+    "paymentMethod"
+  );
+
+  useEffect(() => {
+    if (fromCheckout === "true" && paymentMethod === "GCash") {
+      // Place the order here
+      console.log("Placing order...");
+    }
+  }, [fromCheckout, paymentMethod]);
+
   const [orderData, setOrderData] = useState([]);
 
   const clearOrderData = () => {
@@ -110,9 +123,12 @@ const Orders = () => {
                                   )
                                 : null}
                             </p>
+                            <p>Payment Method: {order.orderPayment}</p>
                             <p>
                               Total: ₱
-                              {parseFloat(order.orderTotalCost).toFixed(2)}
+                              {parseFloat(order.orderTotalCost)
+                                .toFixed(2)
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                             </p>
                           </article>
                         </Link>

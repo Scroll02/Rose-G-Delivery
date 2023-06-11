@@ -26,26 +26,26 @@ const ExtrasProductList = ({ categoryName, title }) => {
           const product = doc.data();
           return { id, ...product };
         });
-        setExtraProducts(data);
+
+        let filteredProducts = [];
+        if (categoryName === "Rice Meals" || categoryName === "Barbecue") {
+          filteredProducts = data.filter((product) =>
+            product.productName.includes("Rice")
+          );
+        } else if (categoryName === "Palabok") {
+          filteredProducts = data.filter(
+            (product) =>
+              product.productName.includes("Chicharon") ||
+              product.productName.includes("Sauce")
+          );
+        }
+
+        setExtraProducts(filteredProducts);
       })
       .catch((error) => {
         console.log("Error getting documents: ", error);
       });
-  }, []);
-
-  // Extras Products Slider
-  const ArrowLeft = (props) => (
-    <button
-      {...props}
-      className={"extrasListPrev__btn ri-arrow-left-circle-fill"}
-    />
-  );
-  const ArrowRight = (props) => (
-    <button
-      {...props}
-      className={"extrasListNext__btn ri-arrow-right-circle-fill"}
-    />
-  );
+  }, [categoryName]);
 
   const sliderSettings = {
     dots: false,

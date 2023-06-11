@@ -1,9 +1,10 @@
 .extrasList__slides {
   position: relative;
-  width: 100%;
+  width: auto;
   height: auto;
   margin: 20px 0 0 0;
 }
+
 .extrasProduct__list-container h5 {
   font-size: 1.5rem;
   color: var(--background-color2);

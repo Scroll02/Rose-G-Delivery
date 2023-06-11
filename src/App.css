@@ -71,7 +71,7 @@ main {
 /* Default Arrow of React-Slick Slider */
 .slick-prev,
 .slick-next {
-  font-size: 15px !important;
+  font-size: 1rem !important;
 }
 
 .slick-prev:before,
@@ -85,8 +85,9 @@ main {
 }
 
 @media only screen and (max-width: 768px) {
-  section {
-    padding: 15px 0px;
+  section,
+  main {
+    padding: 10px 0px;
   }
 
   h1,

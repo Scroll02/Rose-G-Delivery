@@ -80,3 +80,20 @@ h4.confirmed {
   font-size: 1.2rem;
   color: var(--text-color1);
 }
+
+@media only screen and (max-width: 992px) {
+  .order__now img {
+    width: 50%;
+  }
+  .order__now h1 {
+    font-size: 1rem;
+  }
+}
+@media only screen and (max-width: 576px) {
+  .order__now img {
+    width: 60%;
+  }
+  .order__now h1 {
+    font-size: 0.9rem;
+  }
+}

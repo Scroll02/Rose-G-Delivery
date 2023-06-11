@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from "react";
 import "../../style/MenuProductCard.css";
-
 // Navigation
 import { Link, useNavigate } from "react-router-dom";
-
 // Redux
 import { useDispatch } from "react-redux";
 import { bagActions } from "../../store/MyBag/bagSlice";
-
 // Firebase
 import { db, auth } from "../../firebase";
 import { getDoc, setDoc, arrayUnion, updateDoc, doc } from "firebase/firestore";
-
 // Toast
 import {
   showSuccessToast,
   showErrorToast,
   showInfoToast,
 } from "../Toast/Toast";
+// Modal
+import AvailabilityModal from "../Modal/AvailabilityModal";
 
 const MenuProductCard = (props) => {
   const {
@@ -30,12 +28,15 @@ const MenuProductCard = (props) => {
     initialStock,
   } = props.item;
 
-  //------------------ Navigation ------------------//
-  const navigate = useNavigate();
+  // Modal
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const closeAvalabilityModal = () => {
+    setShowAvailabilityModal(false);
+  };
 
-  //------------------ Add to Cart Function ------------------//
+  // Add to Cart Function
   const dispatch = useDispatch();
-  const addToCart = () => {
+  const addToCart = async () => {
     if (!auth.currentUser) {
       showErrorToast("You need to login first", 2000);
       return;
@@ -49,60 +50,78 @@ const MenuProductCard = (props) => {
       productQty: 1,
     };
 
+    // Check if the product name contains "Palabok" and "pax"
+    const isLimitedProduct =
+      productName.includes("Palabok") && productName.includes("pax");
+    let limitExceeded = false;
+
+    if (isLimitedProduct && newItem.productQty > 10) {
+      limitExceeded = true;
+    }
+
     const docRef = doc(db, "UserBag", auth.currentUser.uid);
 
-    getDoc(docRef)
-      .then((doc) => {
-        if (doc.exists()) {
-          const bagItems = doc.data().bag;
-          const itemExists = bagItems.some(
-            (item) => item.productId === newItem.productId
-          );
+    try {
+      const docSnap = await getDoc(docRef);
 
-          if (itemExists) {
-            showInfoToast("The item is already in the cart", 2000);
-            return;
-          }
+      if (docSnap.exists()) {
+        const bagItems = docSnap.data().bag;
+        const itemExists = bagItems.some(
+          (item) => item.productId === newItem.productId
+        );
+
+        if (itemExists) {
+          showInfoToast("The item is already in the cart", 2000);
+          return;
         }
+      }
 
-        dispatch(bagActions.addItem(newItem));
-        const totalPrice = price * 1;
+      // Retrieve currentStock and initialStock from Firestore
+      const productDataRef = doc(db, "ProductData", id);
+      const productDataSnap = await getDoc(productDataRef);
 
-        // Add item to firebase
-        const data1 = {
-          ...newItem,
-          totalPrice: totalPrice,
-        };
+      if (productDataSnap.exists()) {
+        const productData = productDataSnap.data();
+        const currentStock = productData.currentStock;
+        const initialStock = productData.initialStock;
 
-        // Update or create document
-        const updatePromise = doc.exists()
-          ? updateDoc(docRef, { bag: arrayUnion(data1) })
-          : setDoc(docRef, { bag: [data1] });
+        // Check if productQty exceeds the limit or the currentStock
+        if (
+          limitExceeded ||
+          newItem.productQty > currentStock ||
+          newItem.productQty > initialStock
+        ) {
+          setShowAvailabilityModal(true);
+          return;
+        }
+      }
 
-        updatePromise
-          .then(() => {
-            showSuccessToast("Item added to cart", 2000);
-          })
-          .catch((error) => {
-            showErrorToast(`Item is not added to cart: ${error}`, 2000);
-          });
-      })
-      .catch((error) => {
-        // Create document
-        setDoc(docRef, { bag: [newItem] })
-          .then(() => {
-            dispatch(bagActions.addItem(newItem));
-            showSuccessToast("Item added to cart", 2000);
-          })
-          .catch((error) => {
-            showErrorToast(`Item is not added to cart: ${error}`, 2000);
-          });
-      });
+      dispatch(bagActions.addItem(newItem));
+      const totalPrice = price * 1;
+
+      // Add item to Firebase
+      const data1 = {
+        ...newItem,
+        totalPrice: totalPrice,
+      };
+
+      // Update or create document
+      const updatePromise = docSnap.exists()
+        ? updateDoc(docRef, { bag: arrayUnion(data1) })
+        : setDoc(docRef, { bag: [data1] });
+
+      await updatePromise;
+      showSuccessToast("Item added to cart", 2000);
+    } catch (error) {
+      showErrorToast(`Item is not added to cart: ${error}`, 2000);
+    }
   };
 
   return (
     <>
-      {/* <Link to={`/productDetails/${id}`} className="menu__productWrapper"> </Link> */}
+      {showAvailabilityModal && (
+        <AvailabilityModal closeAvalabilityModal={closeAvalabilityModal} />
+      )}
       <div className="menu__productCards">
         <div className="menu__singleProduct">
           <div className="menu__productImg">
@@ -147,32 +166,6 @@ const MenuProductCard = (props) => {
         </div>
       </div>
     </>
-    // <div className="menu__productCards">
-    //   <Link to={`/productDetails/${id}`} className="menu__singleProduct">
-    //     <div className="menu__productImg">
-    //       <img
-    //         src={img}
-    //         alt="product-image"
-    //         className={`product-img ${productName.replace(/\s+/g, "")}`}
-    //       />
-    //     </div>
-    //     <div className="menu__productContent">
-    //       <h6>{productName}</h6>
-    //       <p className="menu__productDesc">{description}</p>
-    //       <div className="menu__productFooter">
-    //         <span className="menu__productPrice">
-    //           ₱
-    //           {parseFloat(price)
-    //             .toFixed(2)
-    //             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-    //         </span>
-    //         <button className="menu__orderBtn" onClick={addToBag}>
-    //           <i class="ri-shopping-bag-2-line"></i>
-    //         </button>
-    //       </div>
-    //     </div>
-    //   </Link>
-    // </div>
   );
 };
 

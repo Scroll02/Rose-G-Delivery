@@ -44,7 +44,6 @@ const ActivityHistory = () => {
     };
   }, []);
 
-  console.log(orderData);
   return (
     <div className="actHistory__container">
       <h5>Order History</h5>

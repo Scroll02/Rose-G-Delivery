@@ -171,6 +171,39 @@ button[type="submit"]:hover {
   outline: none;
   border-color: var(--background-color2);
 }
+.selectTime__group {
+  margin-left: 20px;
+}
+.selectTime__group select {
+  margin-left: 10px;
+  max-width: 170px;
+}
+.proofOfPayment {
+  margin-left: 20px;
+}
+.proofOfPayment label,
+span {
+  font-size: 0.9rem;
+}
+.customFileUpload {
+  display: inline-block;
+  padding: 5px;
+  background-color: var(--background-color2);
+  color: var(--text-color2);
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+.customFileUpload input[type="file"] {
+  display: none;
+}
+.doubleCheck__msg span,
+.doubleCheck__msg p {
+  margin-left: 25px;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
 
 /*Order Summary*/
 .order__summary {

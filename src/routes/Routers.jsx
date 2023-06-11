@@ -1,8 +1,5 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
-import PrivateRoute from "./PrivateRoute";
-
 import Home from "../pages/Home";
 import Menu from "../pages/Menu";
 import Orders from "../pages/Orders";
@@ -18,7 +15,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import UserProfile from "../pages/UserProfile";
 import ActivityHistoryDetails from "../components/UserProfile/ActivityHistoryDetails";
 import Settings from "../pages/Settings";
-import { createWebhook } from "../api/paymongo_webhook";
+import handler from "../api/paymongo_webhook";
 
 const Routers = () => {
   return (
@@ -42,7 +39,6 @@ const Routers = () => {
         element={<ActivityHistoryDetails />}
       />
       <Route path="/settings" element={<Settings />} />
-      <Route path="/webhook" element={<createWebhook />} />
     </Routes>
   );
 };

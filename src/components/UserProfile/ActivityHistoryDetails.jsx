@@ -8,7 +8,10 @@ import TitlePageBanner from "../UI/TitlePageBanner";
 import CancelledImg from "../../assets/images/cancel-order.svg";
 import Circle from "../../assets/images/circle-gray.png";
 import DottedLine from "../../assets/images/dotted_line.png";
-import { track_order_status } from "../../globals/constant";
+import {
+  track_order_status,
+  pickup_order_status,
+} from "../../globals/constant";
 import FeedbackModal from "../Modal/FeedbackModal";
 
 // Firebase
@@ -134,6 +137,19 @@ const ActivityHistoryDetails = () => {
                     </span>
                   </div>
 
+                  {orderData?.orderPickUpTime &&
+                    orderData?.orderPickUpTime !== "" && (
+                      <div className="order__details-item">
+                        <p>Pickup Time:&nbsp;</p>
+                        <span>{orderData?.orderPickUpTime}</span>
+                      </div>
+                    )}
+
+                  <div className="orderHistory__item">
+                    <label>Payment Method:&nbsp;</label>
+                    <span>{orderData?.orderPayment}</span>
+                  </div>
+
                   <div className="orderHistory__item">
                     <label>Order Status:&nbsp;</label>
                     <span className={`orderStatus${orderData?.orderStatus}`}>
@@ -155,25 +171,43 @@ const ActivityHistoryDetails = () => {
                 </div>
               </div>
             </Row>
+
             {/* Order Status  */}
             <Row>
               {/* Left Side - Order Status */}
               <Col>
-                {track_order_status.map((item, index) => {
-                  return (
-                    <div
-                      key={`StatusList-${index}`}
-                      className="status__image-container"
-                    >
-                      {/* Display image only for the current step */}
-                      {index === currentStep && item.image && (
-                        <div className="status__image-wrapper">
-                          <img src={item.image} alt={item.title} />
+                {orderData?.orderPayment === "Cash On Delivery" ||
+                orderData?.orderPayment === "GCash"
+                  ? track_order_status.map((item, index) => {
+                      return (
+                        <div
+                          key={`StatusList-${index}`}
+                          className="status__image-container"
+                        >
+                          {/* Display image only for the current step */}
+                          {index === currentStep && item.image && (
+                            <div className="status__image-wrapper">
+                              <img src={item.image} alt={item.title} />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })
+                  : pickup_order_status.map((item, index) => {
+                      return (
+                        <div
+                          key={`StatusList-${index}`}
+                          className="status__image-container"
+                        >
+                          {/* Display image only for the current step */}
+                          {index === currentStep && item.image && (
+                            <div className="status__image-wrapper">
+                              <img src={item.image} alt={item.title} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
 
                 {/* Display CancelledImg image if the order status is Cancelled */}
                 {orderData?.orderStatus === "Cancelled" && (
@@ -187,41 +221,78 @@ const ActivityHistoryDetails = () => {
               {orderData?.orderStatus === "Delivered" ? (
                 <Col>
                   {/* Order Status - Check & Lines */}
-                  {track_order_status.map((item, index) => {
-                    return (
-                      <div key={`StatusList-${index}`}>
-                        <div className="order__status-container">
-                          <img
-                            src={Circle}
-                            alt="check circle"
-                            className={`${
-                              index <= currentStep ? "check-circle" : ""
-                            }`}
-                          />
-
-                          <div className="order__status-text">
-                            <h5>{item.title}</h5>
-                            <p>{item.sub_title}</p>
-                          </div>
-                        </div>
-
-                        {index < track_order_status.length - 1 && (
-                          <div className="order__status-line">
-                            {index < currentStep && (
-                              <div className="line"></div>
-                            )}
-                            {index >= currentStep && (
+                  {orderData?.orderPayment === "Cash On Delivery" ||
+                  orderData?.orderPayment === "GCash"
+                    ? track_order_status.map((item, index) => {
+                        return (
+                          <div key={`StatusList-${index}`}>
+                            <div className="order__status-container">
                               <img
-                                src={DottedLine}
-                                alt="dotted line"
-                                className="dotted-line"
+                                src={Circle}
+                                alt="check circle"
+                                className={`${
+                                  index <= currentStep ? "check-circle" : ""
+                                }`}
                               />
+
+                              <div className="order__status-text">
+                                <h5>{item.title}</h5>
+                                <p>{item.sub_title}</p>
+                              </div>
+                            </div>
+
+                            {index < track_order_status.length - 1 && (
+                              <div className="order__status-line">
+                                {index < currentStep && (
+                                  <div className="line"></div>
+                                )}
+                                {index >= currentStep && (
+                                  <img
+                                    src={DottedLine}
+                                    alt="dotted line"
+                                    className="dotted-line"
+                                  />
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        );
+                      })
+                    : pickup_order_status.map((item, index) => {
+                        return (
+                          <div key={`StatusList-${index}`}>
+                            <div className="order__status-container">
+                              <img
+                                src={Circle}
+                                alt="check circle"
+                                className={`${
+                                  index <= currentStep ? "check-circle" : ""
+                                }`}
+                              />
+
+                              <div className="order__status-text">
+                                <h5>{item.title}</h5>
+                                <p>{item.sub_title}</p>
+                              </div>
+                            </div>
+
+                            {index < track_order_status.length - 1 && (
+                              <div className="order__status-line">
+                                {index < currentStep && (
+                                  <div className="line"></div>
+                                )}
+                                {index >= currentStep && (
+                                  <img
+                                    src={DottedLine}
+                                    alt="dotted line"
+                                    className="dotted-line"
+                                  />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                 </Col>
               ) : (
                 <Col className="cancelled__msg-container">
@@ -278,15 +349,19 @@ const ActivityHistoryDetails = () => {
                       .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                   </span>
                 </h6>
-                <h6>
-                  Delivery Fee:{" "}
-                  <span>
-                    ₱{" "}
-                    {parseFloat(orderData?.orderDeliveryFee || 50)
-                      .toFixed(2)
-                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                  </span>
-                </h6>
+
+                {orderData?.orderPayment === "Cash On Pickup" ? null : (
+                  <h6>
+                    Delivery Fee:{" "}
+                    <span>
+                      ₱{" "}
+                      {parseFloat(orderData?.orderDeliveryFee || 50)
+                        .toFixed(2)
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    </span>
+                  </h6>
+                )}
+
                 <h6>
                   Total:
                   <span>

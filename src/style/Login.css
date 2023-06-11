@@ -16,6 +16,7 @@
 }
 .login__container h5 {
   color: var(--background-color2);
+  font-size: 1.3rem;
 }
 .loginForm__container,
 .login__form {
@@ -41,7 +42,7 @@
   align-self: flex-start;
 }
 .loginForm__input {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 3rem 0.5rem 1rem;
   border-radius: 0.5rem;
   border: 2px solid var(--text-color1);
   box-shadow: 3px 3px var(--background-color2);
@@ -141,4 +142,13 @@
 .or__txt {
   font-weight: 600;
   color: var(--background-color2);
+}
+
+@media only screen and (max-width: 768px) {
+  .login__container {
+    padding: 2rem;
+  }
+  .login__container h5 {
+    font-size: 1rem;
+  }
 }

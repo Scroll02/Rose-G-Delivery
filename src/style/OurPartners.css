@@ -9,5 +9,19 @@
 }
 .ourPartners__logo img {
   width: 20%;
-  margin: 15px 50px 0 50px;
+  margin: 15px 50px;
+}
+
+@media only screen and (max-width: 992px) {
+  .ourPartners__logo img {
+    width: 30%;
+    margin: 15px 30px;
+  }
+}
+
+@media only screen and (max-width: 576px) {
+  .ourPartners__logo img {
+    width: 40%;
+    margin: 15px 10px;
+  }
 }

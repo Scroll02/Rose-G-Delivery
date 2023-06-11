@@ -49,6 +49,13 @@
   text-align: center;
 }
 
+.notice__icon {
+  display: block;
+  margin: 10px auto;
+  max-width: 20%;
+  height: auto;
+}
+
 .contactUs__item {
   text-align: center;
   margin: 10px 0;

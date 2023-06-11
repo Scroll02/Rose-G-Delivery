@@ -29,13 +29,25 @@
 }
 
 .feedback__group label {
+  font-size: 1rem;
   font-weight: 600;
   color: var(--background-color1);
   margin-bottom: 0.5rem;
 }
 
 .feedback__content p {
+  font-size: 1rem;
   padding: 3%;
   text-align: center;
   box-sizing: border-box;
+}
+
+@media only screen and (max-width: 992px) {
+  .feedback__slides-item {
+    height: 300px;
+  }
+  .feedback__content p,
+  .feedback__group label {
+    font-size: 0.9rem;
+  }
 }

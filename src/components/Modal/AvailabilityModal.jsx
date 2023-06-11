@@ -1,5 +1,6 @@
 import React from "react";
 import "./AvailabilityModal.css";
+import NoticeIcon from "../../assets/images/notice.png";
 const AvailabilityModal = ({ closeAvalabilityModal }) => {
   return (
     <>
@@ -15,6 +16,7 @@ const AvailabilityModal = ({ closeAvalabilityModal }) => {
           </div>
 
           <div className="availabilityModal__content">
+            <img className="notice__icon" src={NoticeIcon} alt="Notice image" />
             <p>
               We regret to inform you that we are unable to fulfill your order
               at this time. The requested quantity exceeds our current stock

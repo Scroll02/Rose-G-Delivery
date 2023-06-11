@@ -40,7 +40,7 @@
   align-self: flex-start;
 }
 .registrationForm__input {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 3rem 0.5rem 1rem;
   border-radius: 0.5rem;
   border: 2px solid var(--text-color1);
   box-shadow: 3px 3px var(--background-color2);
@@ -122,4 +122,13 @@
   color: var(--background-color2);
   text-decoration: underline;
   cursor: pointer;
+}
+
+@media only screen and (max-width: 768px) {
+  .registrationForm__container {
+    padding: 2rem;
+  }
+  .registrationForm__container h5 {
+    font-size: 1rem;
+  }
 }

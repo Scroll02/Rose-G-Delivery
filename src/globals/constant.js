@@ -37,3 +37,36 @@ export const track_order_status = [
     image: DeliveredIcon,
   },
 ];
+
+export const pickup_order_status = [
+  {
+    id: 1,
+    title: "Order Pending",
+    sub_title: "We are processing your order",
+    image: PendingIcon,
+  },
+  {
+    id: 2,
+    title: "Order Confirmed",
+    sub_title: "Your order has been validated",
+    image: OrderConfirmed,
+  },
+  {
+    id: 3,
+    title: "Order Prepared",
+    sub_title: "Your order has been prepared",
+    image: PreparingIcon,
+  },
+  {
+    id: 4,
+    title: "Ready for Pickup",
+    sub_title: "Your order is ready for pickup",
+    image: PreparingIcon,
+  },
+  {
+    id: 5,
+    title: "Order Picked Up",
+    sub_title: "You have picked up your order",
+    image: PreparingIcon,
+  },
+];

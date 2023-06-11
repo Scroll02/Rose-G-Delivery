@@ -258,7 +258,7 @@ const EditProfileDetails = ({
         </div>
 
         {/* Email */}
-        <div className="editForm__group">
+        {/* <div className="editForm__group">
           <label htmlFor="email__input">Email:&nbsp;</label>
           <input
             type="email"
@@ -276,7 +276,7 @@ const EditProfileDetails = ({
           ) : (
             ""
           )}
-        </div>
+        </div> */}
 
         {/* Contact Number */}
         <div className="editForm__group">

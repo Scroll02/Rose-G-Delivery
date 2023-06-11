@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const showBag = useSelector((state) => state.bagUi.bagIsVisible);
-  const autoCloseTime = 1000;
+  const autoCloseTime = 2000;
 
   return (
     <div>

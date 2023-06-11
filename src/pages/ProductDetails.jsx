@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "../style/ProductDetails.css";
 import { Container, Row, Col } from "reactstrap";
 import ExtrasProductList from "../components/UI/ExtrasProductList";
+// Modal
+import AvailabilityModal from "../components/Modal/AvailabilityModal";
 
 // Navigation
 import { useParams, useNavigate } from "react-router-dom";
@@ -68,9 +70,15 @@ const ProductDetails = () => {
     }
   };
 
+  // Modal
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const closeAvalabilityModal = () => {
+    setShowAvailabilityModal(false);
+  };
+
   //------------------ Add to Bag Function ------------------//
   const dispatch = useDispatch();
-  const addToCart = () => {
+  const addToCart = async () => {
     if (!auth.currentUser) {
       showErrorToast("You need to login first", 2000);
       return;
@@ -89,6 +97,29 @@ const ProductDetails = () => {
 
     if (isItemAlreadyInBag) {
       showInfoToast("The item is already in your cart", 2000);
+      return;
+    }
+
+    const productQty = parseInt(newItem.productQty, 10);
+    const productName = newItem.productName;
+    const productNameLowerCase = productName.toLowerCase();
+
+    // Check if product name contains "Palabok" and "pax" and limit the quantity to 10
+    if (
+      (productNameLowerCase.includes("palabok") ||
+        productNameLowerCase.includes("pax")) &&
+      productQty > 10
+    ) {
+      setShowAvailabilityModal(true);
+      return;
+    }
+
+    const currentStock = productData?.currentStock;
+    const initialStock = productData?.initialStock;
+
+    // Check if product quantity exceeds current stock or initial stock
+    if (productQty > currentStock || productQty > initialStock) {
+      setShowAvailabilityModal(true);
       return;
     }
 
@@ -142,6 +173,10 @@ const ProductDetails = () => {
   return (
     <main>
       <Container>
+        {showAvailabilityModal && (
+          <AvailabilityModal closeAvalabilityModal={closeAvalabilityModal} />
+        )}
+
         <Row className="single__product-row mb-5">
           <Col className="container__leftCol" lg="12">
             <Row>
@@ -228,7 +263,10 @@ const ProductDetails = () => {
           </Col>
 
           <Col className="container__rightCol" lg="12">
-            <ExtrasProductList categoryName="Extras" title="Add-ons items" />
+            <ExtrasProductList
+              categoryName={productData?.categoryName}
+              title="Add-ons items"
+            />
           </Col>
         </Row>
       </Container>

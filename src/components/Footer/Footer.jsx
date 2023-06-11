@@ -10,12 +10,14 @@ const Footer = () => {
     <footer className="footer">
       <Container>
         <Row>
-          <Col lg="3" md="4" sm="6">
+          {/* Logo Column */}
+          <Col lg="3" md="4" sm="4" xs="4">
             <div className="footer__logo text-start">
               <img src={logo2} alt="logo" />
             </div>
           </Col>
-          <Col lg="3" md="4" sm="6">
+          {/* Menu Navigation Column */}
+          <Col lg="3" md="4" sm="4" xs="4">
             <ListGroup className="delivery__time-list">
               <ListGroupItem className="footer__menu-item border-0 ps-0">
                 <Link to="/home">
@@ -44,7 +46,8 @@ const Footer = () => {
               </ListGroupItem>
             </ListGroup>
           </Col>
-          <Col lg="3" md="4" sm="6">
+          {/* Hours Column */}
+          <Col lg="3" md="4" sm="4" xs="4">
             <h5 className="footer__title">Hours</h5>
             <ListGroup className="delivery__time-list">
               <ListGroupItem className="delivery__time-item border-0 ps-0">
@@ -58,9 +61,10 @@ const Footer = () => {
               </ListGroupItem>
             </ListGroup>
           </Col>
-          <Col lg="3" md="4" sm="6">
+          {/* Contact Us Column */}
+          <Col lg="3" md="12" sm="12" xs="12">
             <h5 className="footer__title-contact">Contact Us</h5>
-            <ListGroup className="contact__us-list">
+            <ListGroup className="contact__us-list mb-3">
               <ListGroupItem className="contact__us-item border-0 ps-0">
                 <a href="https://www.google.com/maps/place/60+Camerino,+Project+4,+Lungsod+Quezon,+1109+Kalakhang+Maynila/@14.6248945,121.0667595,17z/data=!3m1!4b1!4m5!3m4!1s0x3397b78e161aaacf:0x32b943dad2a00bf6!8m2!3d14.6248945!4d121.0689482">
                   <i class="ri-map-pin-line"></i>
