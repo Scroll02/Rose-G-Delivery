@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../style/OrderTracker.css";
 import { Container, Row, Col } from "reactstrap";
 import { useParams, useNavigate } from "react-router-dom";
@@ -8,10 +8,10 @@ import Circle from "../assets/images/circle-gray.png";
 import DottedLine from "../assets/images/dotted_line.png";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
 import { track_order_status, pickup_order_status } from "../globals/constant";
-
 // Modal
 import Modal from "../components/Modal/Modal";
-
+import ProofOfPaymentIssueModal from "../components/Modal/ProofOfPaymentIssueModal";
+import ConfirmationModal from "../components/Modal/ConfirmationModal";
 // Firebase
 import {
   collection,
@@ -20,8 +20,13 @@ import {
   updateDoc,
   onSnapshot,
 } from "firebase/firestore";
-import { db } from "../firebase";
-
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
+import { db, storage, auth } from "../firebase";
 // Toast
 import {
   showSuccessToast,
@@ -35,6 +40,9 @@ const OrderTracker = () => {
 
   // Retrieve Order Data
   const [orderData, setOrderData] = useState(null);
+  const [showPOPIssueModal, setShowPOPIssueModal] = useState(false);
+  const [popIssue, setPopIssue] = useState("");
+  const [issueOrder, setIssueOrder] = useState("");
   useEffect(() => {
     const getOrder = async () => {
       const orderRef = doc(collection(db, "UserOrders"), orderId);
@@ -49,6 +57,17 @@ const OrderTracker = () => {
     };
     getOrder();
   }, [orderId]);
+
+  useEffect(() => {
+    if (
+      orderData?.proofOfPaymentIssue &&
+      orderData?.orderStatus === "Pending"
+    ) {
+      setShowPOPIssueModal(true);
+      setPopIssue(orderData?.proofOfPaymentIssue);
+      setIssueOrder(orderData);
+    }
+  }, [orderData]);
 
   const [currentStep, setCurrentStep] = useState("0");
   useEffect(() => {
@@ -110,13 +129,227 @@ const OrderTracker = () => {
 
   // Pop up modal
   const [showModal, setShowModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  const closeConfirmationModal = () => {
+    setShowConfirmationModal(false);
+    setShowProofOfPayment(false);
+  };
+
+  const closePOPIssueModal = () => {
+    setShowPOPIssueModal(false);
+  };
+
+  // Settlement Options
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [fileName, setFileName] = useState("");
+  const [showProofOfPayment, setShowProofOfPayment] = useState(false);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.includes("image")) {
+      setSelectedFile(file);
+      setFileName(file.name);
+    } else {
+      showErrorToast("Invalid file type. Please upload an image file.", 3000);
+    }
+  };
+
+  const handlePayWithGCash = () => {
+    window.open("https://paymongo.page/l/rose-garden", "_blank");
+    setShowProofOfPayment(true);
+  };
+
+  const handlePayCashToRider = async () => {
+    const orderRef = doc(collection(db, "UserOrders"), orderId);
+    await updateDoc(orderRef, { settlementOptions: "Pay Cash to Rider" });
+    setShowConfirmationModal(false);
+    setShowProofOfPayment(false);
+    setShowPOPIssueModal(false);
+  };
+
+  // Save Button Function
+  // const handleSaveSubmit = async () => {
+  //   try {
+  //     const orderRef = doc(collection(db, "UserOrders"), orderId);
+  //     const orderDoc = await getDoc(orderRef);
+  //     if (orderDoc.exists()) {
+  //       const orderData = orderDoc.data();
+
+  //       let updatedProofOfPaymentURL = [];
+
+  //       if (Array.isArray(orderData.proofOfPaymentURL)) {
+  //         updatedProofOfPaymentURL = [...orderData.proofOfPaymentURL];
+  //       } else if (orderData.proofOfPaymentURL) {
+  //         updatedProofOfPaymentURL = [orderData.proofOfPaymentURL];
+  //       }
+
+  //       let fileName, filePath;
+
+  //       if (selectedFile) {
+  //         fileName = `${auth.currentUser.uid}_${Date.now()}_${
+  //           selectedFile.name
+  //         }`;
+  //         filePath = `proofOfPayment_images/${auth.currentUser.uid}/${fileName}`;
+  //       } else {
+  //         showErrorToast("No file selected.");
+  //         return;
+  //       }
+
+  //       const storageRef = ref(storage, filePath);
+  //       const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+  //       let downloadURL;
+
+  //       uploadTask.on(
+  //         "state_changed",
+  //         (snapshot) => {},
+  //         (error) => {
+  //           // Handle any errors during the upload
+  //           console.error("Error uploading proof of payment:", error);
+  //           showErrorToast("Failed to upload proof of payment.");
+  //         },
+  //         async () => {
+  //           // File uploaded successfully
+  //           try {
+  //             downloadURL = await getDownloadURL(uploadTask.snapshot.ref); // Assign the downloadURL
+
+  //             updatedProofOfPaymentURL.push(downloadURL); // Add the new proof of payment URL to the array
+
+  //             await updateDoc(orderRef, {
+  //               proofOfPaymentURL: updatedProofOfPaymentURL,
+  //               settlementOptions: "Pay with GCash",
+  //             });
+
+  //             // Hide and reset buttons and uploaded files
+  //             setShowProofOfPayment(false);
+  //             setSelectedFile(null);
+  //             setFileName("");
+
+  //             showSuccessToast("Proof of payment saved.", 2000);
+  //           } catch (error) {
+  //             console.error("Error updating proof of payment:", error);
+  //             showErrorToast("Failed to save proof of payment.");
+  //           }
+  //         }
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating proof of payment:", error);
+  //     showErrorToast("Failed to save proof of payment.");
+  //   }
+  // };
+  const deleteFileFromStorage = async (filePath) => {
+    try {
+      const storageRef = ref(storage, filePath);
+      await deleteObject(storageRef);
+    } catch (error) {
+      console.error("Error deleting file from storage:", error);
+      showErrorToast("Failed to delete old file.");
+    }
+  };
+
+  const handleSaveSubmit = async () => {
+    try {
+      const orderRef = doc(collection(db, "UserOrders"), orderId);
+      const orderDoc = await getDoc(orderRef);
+      if (orderDoc.exists()) {
+        const orderData = orderDoc.data();
+
+        let updatedProofOfPaymentURL = [];
+
+        let fileName, filePath;
+
+        if (selectedFile) {
+          fileName = `${auth.currentUser.uid}_${Date.now()}_${
+            selectedFile.name
+          }`;
+          filePath = `proofOfPayment_images/${auth.currentUser.uid}/${fileName}`;
+        } else {
+          showErrorToast("No file selected.");
+          return;
+        }
+
+        const storageRef = ref(storage, filePath);
+        const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+        let downloadURL;
+
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {},
+          (error) => {
+            // Handle any errors during the upload
+            console.error("Error uploading proof of payment:", error);
+            showErrorToast("Failed to upload proof of payment.");
+          },
+          async () => {
+            // File uploaded successfully
+            try {
+              downloadURL = await getDownloadURL(uploadTask.snapshot.ref); // Assign the downloadURL
+
+              if (
+                orderData.proofOfPaymentIssue === "Insufficient Payment Amount"
+              ) {
+                updatedProofOfPaymentURL = orderData.proofOfPaymentURL || []; // Copy the existing proofOfPaymentURL array if it exists, otherwise create an empty array
+                updatedProofOfPaymentURL.push(downloadURL); // Add the new proof of payment URL to the array
+              } else if (
+                orderData.proofOfPaymentIssue === "Invalid Proof of Payment"
+              ) {
+                // Delete the old file from storage if it exists
+                if (
+                  Array.isArray(orderData.proofOfPaymentURL) &&
+                  orderData.proofOfPaymentURL.length > 0
+                ) {
+                  const oldFilePath = orderData.proofOfPaymentURL[0];
+                  await deleteFileFromStorage(oldFilePath);
+                }
+                updatedProofOfPaymentURL = [downloadURL]; // Replace the existing proof of payment URL with the new one
+              }
+
+              await updateDoc(orderRef, {
+                proofOfPaymentURL: updatedProofOfPaymentURL,
+                settlementOptions: "Pay with GCash",
+              });
+
+              // Hide and reset buttons and uploaded files
+              setShowProofOfPayment(false);
+              setSelectedFile(null);
+              setFileName("");
+
+              showSuccessToast("Proof of payment saved.", 2000);
+            } catch (error) {
+              console.error("Error updating proof of payment:", error);
+              showErrorToast("Failed to save proof of payment.");
+            }
+          }
+        );
+      }
+    } catch (error) {
+      console.error("Error updating proof of payment:", error);
+      showErrorToast("Failed to save proof of payment.");
+    }
   };
 
   return (
     <main>
       <Container>
+        {showPOPIssueModal && (
+          <ProofOfPaymentIssueModal
+            closePOPIssueModal={closePOPIssueModal}
+            popIssue={popIssue}
+            orderId={issueOrder?.orderId}
+          />
+        )}
+        {showConfirmationModal && (
+          <ConfirmationModal
+            closeConfirmationModal={closeConfirmationModal}
+            handlePayCashToRider={handlePayCashToRider}
+          />
+        )}
         <Row>
           <TitlePageBanner title="Order Tracker" />
           {/* Left Column */}
@@ -166,14 +399,93 @@ const OrderTracker = () => {
                   </div>
                 )}
 
-                {/* <div className="order__details-item">
-                  <p>Delivery Rider:&nbsp;</p>
-                  <span>
-                    {orderData?.deliveryRiderInfo
-                      ? orderData?.deliveryRiderInfo
-                      : null}
-                  </span>
-                </div> */}
+                {/* Settlement Options (Insufficient Payment Amount) */}
+                {/* Issue: Insufficient Payment Amount */}
+                {orderData?.proofOfPaymentIssue ===
+                  "Insufficient Payment Amount" && (
+                  <div className="order__details-item">
+                    <p>Settlement Options:&nbsp;</p>
+                    <span>{orderData?.settlementOptions}</span>
+                    {/* Only show the buttons if showPaymentButtons is true */}
+                    {orderData?.settlementOptions === null ||
+                      (orderData?.settlementOptions === undefined && (
+                        <div className="settlementOpt__actions">
+                          <button
+                            className="settlementOpt__btn"
+                            onClick={handlePayWithGCash}
+                          >
+                            Pay with GCash
+                          </button>
+                          <button
+                            className="settlementOpt__btn"
+                            // onClick={() =>
+                            //   handleSettlementOption("Pay Cash to Rider")
+                            // }
+                            onClick={() => setShowConfirmationModal(true)}
+                          >
+                            Pay Cash to Rider
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+                {/* Issue: Invalid Proof of Payment */}
+                {orderData?.proofOfPaymentIssue ===
+                  "Invalid Proof of Payment" && (
+                  <div className="order__details-item">
+                    <p>Settlement Option:&nbsp;</p>
+                    <span>{orderData?.settlementOptions}</span>
+                    {/* Only show the buttons if showPaymentButtons is true */}
+                    {orderData?.settlementOptions === null ||
+                      (orderData?.settlementOptions === undefined && (
+                        <div className="settlementOpt__actions">
+                          <button
+                            className="settlementOpt__btn"
+                            onClick={handlePayWithGCash}
+                          >
+                            Pay with GCash
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+                {/* Upload Proof Of Payment */}
+                {showProofOfPayment && (
+                  <>
+                    <div className="popIssueUploadFile">
+                      <div className="popUploadContainer">
+                        <label
+                          htmlFor="fileUpload"
+                          className="customPOPFileUpload"
+                        >
+                          <input
+                            type="file"
+                            id="fileUpload"
+                            onChange={handleFileUpload}
+                          />
+                          Upload proof of payment
+                        </label>
+                        <span>{fileName}</span>
+                      </div>
+                      {selectedFile && (
+                        <div className="popSave__action">
+                          <button
+                            className="popSave__btn"
+                            onClick={handleSaveSubmit}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="popDoubleCheck__msg">
+                      <span>
+                        *Please ensure to double-check the uploaded proof of
+                        payment.
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </Row>
 

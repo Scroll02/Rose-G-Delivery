@@ -320,6 +320,7 @@ const Checkout = () => {
     try {
       // Upload the proof of payment image to Firebase Storage
       if (paymentMethod === "GCash") {
+        // Upload the proof of payment image to Firebase Storage
         const storageRef = ref(storage, filePath);
         await uploadBytes(storageRef, selectedFile);
 
@@ -327,31 +328,46 @@ const Checkout = () => {
         const downloadURL = await getDownloadURL(storageRef);
 
         const docRef = doc(collection(db, "UserOrders"), orderID);
+        const docSnapshot = await getDoc(docRef);
 
-        await setDoc(docRef, {
-          orderId: orderID,
-          orderData: bagItems,
-          orderStatus: "Pending",
-          orderTotalCost: bagTotalAmount,
-          orderDate: serverTimestamp(),
-          orderAddress: userData?.address,
-          orderContactNumber: userData?.contactNumber,
-          orderFirstName: userData?.firstName,
-          orderLastName: userData?.lastName,
-          customerProfileImg: userData?.profileImageUrl || "",
-          orderUserId: auth.currentUser.uid,
-          orderPayment: paymentMethod,
-          orderDeliveryFee: deliveryFee,
-          orderNote: orderNote,
-          orderPickUpTime:
-            paymentMethod === "Cash On Pickup" ? selectedTime : null,
-          paymentStatus: "Paid",
-          proofOfPaymentURL: downloadURL,
-          paymentId: null,
-        });
+        if (docSnapshot.exists()) {
+          const existingProofOfPaymentURLs =
+            docSnapshot.data().proofOfPaymentURL || [];
+
+          // Append the new proofOfPaymentURL to the existing array
+          const updatedProofOfPaymentURLs = [
+            ...existingProofOfPaymentURLs,
+            downloadURL,
+          ];
+
+          await updateDoc(docRef, {
+            proofOfPaymentURL: updatedProofOfPaymentURLs,
+          });
+        } else {
+          await setDoc(docRef, {
+            orderId: orderID,
+            orderData: bagItems,
+            orderStatus: "Pending",
+            orderTotalCost: bagTotalAmount,
+            orderDate: serverTimestamp(),
+            orderAddress: userData?.address,
+            orderContactNumber: userData?.contactNumber,
+            orderFirstName: userData?.firstName,
+            orderLastName: userData?.lastName,
+            customerProfileImg: userData?.profileImageUrl || "",
+            orderUserId: auth.currentUser.uid,
+            orderPayment: paymentMethod,
+            orderDeliveryFee: deliveryFee,
+            orderNote: orderNote,
+            orderPickUpTime:
+              paymentMethod === "Cash On Pickup" ? selectedTime : null,
+            paymentStatus: "Paid",
+            proofOfPaymentURL: [downloadURL], // Store as an array with a single element
+            paymentId: null,
+          });
+        }
       } else {
         const docRef = doc(collection(db, "UserOrders"), orderID);
-
         await setDoc(docRef, {
           orderId: orderID || docRef.id,
           orderData: bagItems,

@@ -5,10 +5,10 @@ import { Link, useLocation } from "react-router-dom";
 import moment from "moment/moment";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
 import OrderNowImg from "../assets/images/order-now.png";
-
 // Firebase
 import { auth, db } from "../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import ProofOfPaymentIssueModal from "../components/Modal/ProofOfPaymentIssueModal";
 
 const Orders = () => {
   const location = useLocation();
@@ -43,7 +43,14 @@ const Orders = () => {
         ])
       );
       onSnapshot(ordersRef, (snapshot) => {
-        setOrderData(snapshot.docs.map((doc) => doc.data()));
+        const orders = snapshot.docs.map((doc) => doc.data());
+        setOrderData(orders);
+        const hasIssue = orders.some(
+          (order) =>
+            order.proofOfPaymentIssue === "Insufficient Payment Amount" ||
+            order.proofOfPaymentIssue === "Invalid Proof of Payment"
+        );
+        setShowPOPIssueModal(hasIssue);
       });
     }
   };
@@ -64,14 +71,41 @@ const Orders = () => {
   // console.log(orderData);
 
   // Modal
-  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
-  const closeAvalabilityModal = () => {
-    setShowAvailabilityModal(false);
+  const [showPOPIssueModal, setShowPOPIssueModal] = useState(false);
+  const [popIssue, setPopIssue] = useState("");
+  const [issueOrder, setIssueOrder] = useState("");
+  const closePOPIssueModal = () => {
+    setShowPOPIssueModal(false);
   };
+  useEffect(() => {
+    // const hasIssue = orderData.some(
+    //   (order) =>
+    //     order.proofOfPaymentIssue === "Insufficient Payment Amount" ||
+    //     order.proofOfPaymentIssue === "Invalid Proof of Payment"
+    // );
+    const hasIssue = orderData.some(
+      (order) => order.proofOfPaymentIssue && order.orderStatus === "Pending"
+    );
+    setShowPOPIssueModal(hasIssue);
+    if (hasIssue) {
+      const issueOrder = orderData.find(
+        (order) => order.proofOfPaymentIssue && order.orderStatus === "Pending"
+      );
+      setPopIssue(issueOrder?.proofOfPaymentIssue);
+      setIssueOrder(issueOrder);
+    }
+  }, [orderData]);
 
   return (
     <main>
       <Container>
+        {showPOPIssueModal && (
+          <ProofOfPaymentIssueModal
+            closePOPIssueModal={closePOPIssueModal}
+            popIssue={popIssue}
+            orderId={issueOrder?.orderId}
+          />
+        )}
         <Row>
           <Col lg="12">
             <header>
