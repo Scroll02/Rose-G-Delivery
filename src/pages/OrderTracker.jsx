@@ -61,7 +61,8 @@ const OrderTracker = () => {
   useEffect(() => {
     if (
       orderData?.proofOfPaymentIssue &&
-      orderData?.orderStatus === "Pending"
+      orderData?.orderStatus === "Pending" &&
+      !orderData?.settlementOptions
     ) {
       setShowPOPIssueModal(true);
       setPopIssue(orderData?.proofOfPaymentIssue);
@@ -79,9 +80,9 @@ const OrderTracker = () => {
         setCurrentStep(1);
       } else if (status === "Prepared") {
         setCurrentStep(2);
-      } else if (status === "Delivery") {
+      } else if (status === "Delivery" || status === "Ready for Pickup") {
         setCurrentStep(3);
-      } else if (status === "Delivered") {
+      } else if (status === "Delivered" || status === "Order Picked up") {
         setCurrentStep(4);
       }
     }
@@ -130,15 +131,19 @@ const OrderTracker = () => {
   // Pop up modal
   const [showModal, setShowModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+  // Close cancellation modal (Cancelling order)
   const closeModal = () => {
     setShowModal(false);
   };
 
+  // Close confirmation modal & hide proof of payment button
   const closeConfirmationModal = () => {
     setShowConfirmationModal(false);
     setShowProofOfPayment(false);
   };
 
+  // Close proof of payment issue modal
   const closePOPIssueModal = () => {
     setShowPOPIssueModal(false);
   };
@@ -148,6 +153,7 @@ const OrderTracker = () => {
   const [fileName, setFileName] = useState("");
   const [showProofOfPayment, setShowProofOfPayment] = useState(false);
 
+  // File upload for proof of payment
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     if (file && file.type.includes("image")) {
@@ -158,11 +164,13 @@ const OrderTracker = () => {
     }
   };
 
+  // Pay with GCash button function
   const handlePayWithGCash = () => {
     window.open("https://paymongo.page/l/rose-garden", "_blank");
     setShowProofOfPayment(true);
   };
 
+  // Pay Cash to Rider button function
   const handlePayCashToRider = async () => {
     const orderRef = doc(collection(db, "UserOrders"), orderId);
     await updateDoc(orderRef, { settlementOptions: "Pay Cash to Rider" });
@@ -172,76 +180,6 @@ const OrderTracker = () => {
   };
 
   // Save Button Function
-  // const handleSaveSubmit = async () => {
-  //   try {
-  //     const orderRef = doc(collection(db, "UserOrders"), orderId);
-  //     const orderDoc = await getDoc(orderRef);
-  //     if (orderDoc.exists()) {
-  //       const orderData = orderDoc.data();
-
-  //       let updatedProofOfPaymentURL = [];
-
-  //       if (Array.isArray(orderData.proofOfPaymentURL)) {
-  //         updatedProofOfPaymentURL = [...orderData.proofOfPaymentURL];
-  //       } else if (orderData.proofOfPaymentURL) {
-  //         updatedProofOfPaymentURL = [orderData.proofOfPaymentURL];
-  //       }
-
-  //       let fileName, filePath;
-
-  //       if (selectedFile) {
-  //         fileName = `${auth.currentUser.uid}_${Date.now()}_${
-  //           selectedFile.name
-  //         }`;
-  //         filePath = `proofOfPayment_images/${auth.currentUser.uid}/${fileName}`;
-  //       } else {
-  //         showErrorToast("No file selected.");
-  //         return;
-  //       }
-
-  //       const storageRef = ref(storage, filePath);
-  //       const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-  //       let downloadURL;
-
-  //       uploadTask.on(
-  //         "state_changed",
-  //         (snapshot) => {},
-  //         (error) => {
-  //           // Handle any errors during the upload
-  //           console.error("Error uploading proof of payment:", error);
-  //           showErrorToast("Failed to upload proof of payment.");
-  //         },
-  //         async () => {
-  //           // File uploaded successfully
-  //           try {
-  //             downloadURL = await getDownloadURL(uploadTask.snapshot.ref); // Assign the downloadURL
-
-  //             updatedProofOfPaymentURL.push(downloadURL); // Add the new proof of payment URL to the array
-
-  //             await updateDoc(orderRef, {
-  //               proofOfPaymentURL: updatedProofOfPaymentURL,
-  //               settlementOptions: "Pay with GCash",
-  //             });
-
-  //             // Hide and reset buttons and uploaded files
-  //             setShowProofOfPayment(false);
-  //             setSelectedFile(null);
-  //             setFileName("");
-
-  //             showSuccessToast("Proof of payment saved.", 2000);
-  //           } catch (error) {
-  //             console.error("Error updating proof of payment:", error);
-  //             showErrorToast("Failed to save proof of payment.");
-  //           }
-  //         }
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating proof of payment:", error);
-  //     showErrorToast("Failed to save proof of payment.");
-  //   }
-  // };
   const deleteFileFromStorage = async (filePath) => {
     try {
       const storageRef = ref(storage, filePath);
@@ -319,6 +257,7 @@ const OrderTracker = () => {
               setShowProofOfPayment(false);
               setSelectedFile(null);
               setFileName("");
+              setShowPOPIssueModal(false);
 
               showSuccessToast("Proof of payment saved.", 2000);
             } catch (error) {
@@ -357,7 +296,7 @@ const OrderTracker = () => {
             <Row>
               {/* Order Details */}
               <div className="order__details-container">
-                <h4>Order Details</h4>
+                <h4 className="mb-3">Order Details</h4>
                 <div className="order__details-item">
                   <p>Order ID:&nbsp;</p>
                   <span>{orderData?.orderId}</span>
@@ -396,6 +335,13 @@ const OrderTracker = () => {
                   <div className="order__details-item">
                     <p>Note:&nbsp;</p>
                     <span>{orderData?.orderNote}</span>
+                  </div>
+                )}
+
+                {orderData?.proofOfPaymentIssue && (
+                  <div className="order__details-item">
+                    <p>Proof Of Payment Issue:&nbsp; </p>
+                    <span>{orderData?.proofOfPaymentIssue}</span>
                   </div>
                 )}
 

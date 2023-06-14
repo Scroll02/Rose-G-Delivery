@@ -5,36 +5,34 @@ import { Link, useLocation } from "react-router-dom";
 import moment from "moment/moment";
 import TitlePageBanner from "../components/UI/TitlePageBanner";
 import OrderNowImg from "../assets/images/order-now.png";
+import ThankYouModal from "../components/Modal/ThankYouModal";
 // Firebase
 import { auth, db } from "../firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  updateDoc,
+  getDocs,
+} from "firebase/firestore";
 import ProofOfPaymentIssueModal from "../components/Modal/ProofOfPaymentIssueModal";
 
 const Orders = () => {
-  const location = useLocation();
-  const fromCheckout = new URLSearchParams(location.search).get("fromCheckout");
-  const paymentMethod = new URLSearchParams(location.search).get(
-    "paymentMethod"
-  );
-
-  useEffect(() => {
-    if (fromCheckout === "true" && paymentMethod === "GCash") {
-      // Place the order here
-      console.log("Placing order...");
-    }
-  }, [fromCheckout, paymentMethod]);
-
   const [orderData, setOrderData] = useState([]);
-
   const clearOrderData = () => {
     setOrderData([]);
   };
 
+  // Retrieve UserOrders Data
   const getOrdersData = async () => {
-    if (auth.currentUser) {
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
       const ordersRef = query(
         collection(db, "UserOrders"),
-        where("orderUserId", "==", auth.currentUser.uid),
+        where("orderUserId", "==", currentUser.uid),
         where("orderStatus", "in", [
           "Pending",
           "Confirmed",
@@ -54,7 +52,6 @@ const Orders = () => {
       });
     }
   };
-
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -68,9 +65,8 @@ const Orders = () => {
       unsubscribe();
     };
   }, []);
-  // console.log(orderData);
 
-  // Modal
+  // Proof Of Payment Issue Modal
   const [showPOPIssueModal, setShowPOPIssueModal] = useState(false);
   const [popIssue, setPopIssue] = useState("");
   const [issueOrder, setIssueOrder] = useState("");
@@ -78,27 +74,77 @@ const Orders = () => {
     setShowPOPIssueModal(false);
   };
   useEffect(() => {
-    // const hasIssue = orderData.some(
-    //   (order) =>
-    //     order.proofOfPaymentIssue === "Insufficient Payment Amount" ||
-    //     order.proofOfPaymentIssue === "Invalid Proof of Payment"
-    // );
     const hasIssue = orderData.some(
-      (order) => order.proofOfPaymentIssue && order.orderStatus === "Pending"
+      (order) =>
+        order.proofOfPaymentIssue &&
+        order.orderStatus === "Pending" &&
+        !order.settlementOptions
     );
     setShowPOPIssueModal(hasIssue);
     if (hasIssue) {
       const issueOrder = orderData.find(
-        (order) => order.proofOfPaymentIssue && order.orderStatus === "Pending"
+        (order) =>
+          order.proofOfPaymentIssue &&
+          order.orderStatus === "Pending" &&
+          !order.settlementOptions
       );
       setPopIssue(issueOrder?.proofOfPaymentIssue);
       setIssueOrder(issueOrder);
     }
   }, [orderData]);
 
+  // Thank You Modal
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const [thankYouModalOrder, setThankYouModalOrder] = useState(null);
+  // Close modal function
+  const closeThankYouModal = async () => {
+    if (thankYouModalOrder) {
+      const docRef = doc(db, "UserOrders", thankYouModalOrder.orderId);
+      // update thankYouModalDisplayed to true so the modal will not appear again
+      await updateDoc(docRef, { thankYouModalDisplayed: true });
+    }
+    setShowThankYouModal(false);
+    setThankYouModalOrder(null);
+  };
+
+  // Display thank you modal
+  useEffect(() => {
+    const fetchModalOrder = async () => {
+      if (auth.currentUser) {
+        const modalOrder = orderData.find(
+          (order) =>
+            (order.orderStatus === "Delivered" ||
+              order.orderStatus === "Order Picked up") &&
+            !order.thankYouModalDisplayed
+        );
+
+        if (modalOrder) {
+          setThankYouModalOrder(modalOrder);
+        } else {
+          const ordersRef = query(
+            collection(db, "UserOrders"),
+            where("orderUserId", "==", auth.currentUser.uid),
+            where("orderStatus", "in", ["Delivered", "Order Picked up"]),
+            where("thankYouModalDisplayed", "==", false)
+          );
+
+          const snapshot = await getDocs(ordersRef);
+          const orders = snapshot.docs.map((doc) => doc.data());
+          if (orders.length > 0) {
+            setShowThankYouModal(true);
+            setThankYouModalOrder(orders[0]);
+          }
+        }
+      }
+    };
+
+    fetchModalOrder();
+  }, [orderData]);
+
   return (
     <main>
       <Container>
+        {/* Proof of payment issue modal */}
         {showPOPIssueModal && (
           <ProofOfPaymentIssueModal
             closePOPIssueModal={closePOPIssueModal}
@@ -106,6 +152,15 @@ const Orders = () => {
             orderId={issueOrder?.orderId}
           />
         )}
+
+        {/* Thank you modal */}
+        {showThankYouModal && (
+          <ThankYouModal
+            closeThankYouModal={closeThankYouModal}
+            thankYouModalOrder={thankYouModalOrder}
+          />
+        )}
+
         <Row>
           <Col lg="12">
             <header>
@@ -137,12 +192,14 @@ const Orders = () => {
                               className={`${
                                 order.orderStatus === "Pending"
                                   ? "pending"
-                                  : order.orderStatus === "Delivery"
-                                  ? "delivery"
-                                  : order.orderStatus === "Prepared"
-                                  ? "preparing"
                                   : order.orderStatus === "Confirmed"
                                   ? "confirmed"
+                                  : order.orderStatus === "Prepared"
+                                  ? "prepared"
+                                  : order.orderStatus === "Delivery"
+                                  ? "delivery"
+                                  : order.orderStatus === "Ready for Pickup"
+                                  ? "ready-for-pickup"
                                   : ""
                               }`}
                             >

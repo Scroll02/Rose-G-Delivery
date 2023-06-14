@@ -22,7 +22,11 @@ const ActivityHistory = () => {
       const ordersRef = query(
         collection(db, "UserOrders"),
         where("orderUserId", "==", auth.currentUser.uid),
-        where("orderStatus", "in", ["Delivered", "Cancelled"]) // Only retrieve orders with Delivered or Cancelled status
+        where("orderStatus", "in", [
+          "Delivered",
+          "Cancelled",
+          "Order Picked up",
+        ])
       );
       onSnapshot(ordersRef, (snapshot) => {
         setOrderData(snapshot.docs.map((doc) => doc.data()));
@@ -52,7 +56,8 @@ const ActivityHistory = () => {
         !orderData.some(
           (order) =>
             order.orderStatus === "Delivered" ||
-            order.orderStatus === "Cancelled"
+            order.orderStatus === "Cancelled" ||
+            order.orderStatus === "Order Picked up"
         ) ? (
           <div className="no__history">
             <img src={NoHistoryImage} alt="No History" />
@@ -76,6 +81,8 @@ const ActivityHistory = () => {
                             ? "delivered"
                             : order.orderStatus === "Cancelled"
                             ? "cancelled"
+                            : order.orderStatus === "Order Picked up"
+                            ? "order-picked-up"
                             : ""
                         }`}
                       >

@@ -60,9 +60,9 @@ const ActivityHistoryDetails = () => {
         setCurrentStep(1);
       } else if (status === "Prepared") {
         setCurrentStep(2);
-      } else if (status === "Delivery") {
+      } else if (status === "Delivery" || status === "Ready for Pickup") {
         setCurrentStep(3);
-      } else if (status === "Delivered") {
+      } else if (status === "Delivered" || status === "Order Picked up") {
         setCurrentStep(4);
       }
     }
@@ -139,8 +139,8 @@ const ActivityHistoryDetails = () => {
 
                   {orderData?.orderPickUpTime &&
                     orderData?.orderPickUpTime !== "" && (
-                      <div className="order__details-item">
-                        <p>Pickup Time:&nbsp;</p>
+                      <div className="orderHistory__item">
+                        <label>Pickup Time:&nbsp;</label>
                         <span>{orderData?.orderPickUpTime}</span>
                       </div>
                     )}
@@ -149,6 +149,20 @@ const ActivityHistoryDetails = () => {
                     <label>Payment Method:&nbsp;</label>
                     <span>{orderData?.orderPayment}</span>
                   </div>
+
+                  {orderData?.proofOfPaymentIssue && (
+                    <div className="orderHistory__item">
+                      <label>Proof of Payment Issue:&nbsp;</label>
+                      <span>{orderData?.proofOfPaymentIssue}</span>
+                    </div>
+                  )}
+
+                  {orderData?.settlementOptions && (
+                    <div className="orderHistory__item">
+                      <label>Settlement Options:&nbsp;</label>
+                      <span>{orderData?.settlementOptions}</span>
+                    </div>
+                  )}
 
                   <div className="orderHistory__item">
                     <label>Order Status:&nbsp;</label>
@@ -163,8 +177,8 @@ const ActivityHistoryDetails = () => {
                   </div>
 
                   {orderData?.orderNote && orderData?.orderNote !== "" && (
-                    <div className="order__details-item">
-                      <p>Note:&nbsp;</p>
+                    <div className="orderHistory__item">
+                      <label>Note:&nbsp;</label>
                       <span>{orderData?.orderNote}</span>
                     </div>
                   )}
@@ -201,7 +215,10 @@ const ActivityHistoryDetails = () => {
                         >
                           {/* Display image only for the current step */}
                           {index === currentStep && item.image && (
-                            <div className="status__image-wrapper">
+                            <div
+                              className="status
+                            __image-wrapper"
+                            >
                               <img src={item.image} alt={item.title} />
                             </div>
                           )}
@@ -218,7 +235,8 @@ const ActivityHistoryDetails = () => {
               </Col>
 
               {/* Right Side - Order Status */}
-              {orderData?.orderStatus === "Delivered" ? (
+              {orderData?.orderStatus === "Delivered" ||
+              orderData?.orderStatus === "Order Picked up" ? (
                 <Col>
                   {/* Order Status - Check & Lines */}
                   {orderData?.orderPayment === "Cash On Delivery" ||
@@ -276,7 +294,7 @@ const ActivityHistoryDetails = () => {
                               </div>
                             </div>
 
-                            {index < track_order_status.length - 1 && (
+                            {index < pickup_order_status.length - 1 && (
                               <div className="order__status-line">
                                 {index < currentStep && (
                                   <div className="line"></div>
@@ -373,7 +391,8 @@ const ActivityHistoryDetails = () => {
                 </h6>
               </div>
 
-              {orderData?.orderStatus === "Delivered" ? (
+              {orderData?.orderStatus === "Delivered" ||
+              orderData?.orderStatus === "Order Picked up" ? (
                 <>
                   <h6 className="footer__msg">
                     Thank you for ordering with us

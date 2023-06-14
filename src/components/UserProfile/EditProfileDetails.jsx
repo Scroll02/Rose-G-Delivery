@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import "../../style/EditProfileDetails.css";
-
+import moment from "moment/moment";
+import { useNavigate } from "react-router-dom";
 // Firebase
-import { doc, updateDoc, collection } from "firebase/firestore";
+import { doc, updateDoc, collection, getDoc, setDoc } from "firebase/firestore";
 import { db, auth, storage } from "../../firebase";
 import {
   ref,
@@ -11,7 +12,6 @@ import {
   getDownloadURL,
   uploadBytesResumable,
 } from "firebase/storage";
-
 // Toast
 import {
   showErrorToast,
@@ -102,95 +102,148 @@ const EditProfileDetails = ({
     setNewAddress(text);
   };
 
-  const handleSave = () => {
-    const userDataRef = doc(db, "UserData", userData.uid); // getting the UserData document
+  // Save button function
+  const handleSave = async () => {
+    const userDataRef = doc(db, "UserData", userData.uid);
+    const userDataSnapshot = await getDoc(userDataRef);
 
-    const newData = {}; // object to hold updated data
-    if (newFirstName !== userData?.firstName && newFirstName.trim() !== "") {
-      newData.firstName = newFirstName;
-    } else {
-      newData.firstName = userData?.firstName;
-    }
+    if (userDataSnapshot.exists()) {
+      const updates = {};
+      const updatedFields = [];
+      let isUpdated = false;
+      const userId = userData.uid;
 
-    if (newLastName !== userData?.lastName && newLastName.trim() !== "") {
-      newData.lastName = newLastName;
-    } else {
-      newData.lastName = userData?.lastName;
-    }
+      if (
+        newFirstName !== "" &&
+        newFirstName !== userDataSnapshot.data().firstName
+      ) {
+        const oldFirstName = userDataSnapshot.data().firstName;
+        const newFirstNameValue = newFirstName;
 
-    if (newEmail !== userData?.email && newEmail.trim() !== "") {
-      newData.email = newEmail;
-    } else {
-      newData.email = userData?.email;
-    }
-
-    if (
-      newContactNumber !== userData?.contactNumber &&
-      newContactNumber.trim() !== ""
-    ) {
-      newData.contactNumber = newContactNumber;
-    } else {
-      newData.contactNumber = userData?.contactNumber;
-    }
-
-    if (newAddress !== userData?.address && newAddress.trim() !== "") {
-      newData.address = newAddress;
-    } else {
-      newData.address = userData?.address;
-    }
-
-    // Check if a new profile image has been selected
-    if (newProfileImage) {
-      const storageRef = ref(
-        storage,
-        `userProfile_images/${userData.uid}/${new Date().getTime()}_${
-          newProfileImage.name
-        }`
-      );
-      const uploadTask = uploadBytesResumable(storageRef, newProfileImage);
-
-      Promise.all([uploadTask])
-        .then(([snapshot]) => {
-          return getDownloadURL(snapshot.ref);
-        })
-        .then((profileImageUrl) => {
-          // Delete old profile image if it exists
-          if (userData.profileImageUrl) {
-            const oldProfileImageRef = ref(storage, userData.profileImageUrl);
-            deleteObject(oldProfileImageRef)
-              .then(() => {
-                console.log("Old profile image deleted successfully");
-              })
-              .catch((error) => {
-                console.log(error);
-              });
-          }
-
-          // Update the document with the new data and profile image URL
-          newData.profileImageUrl = profileImageUrl;
-          return updateDoc(userDataRef, newData);
-        })
-        .then(() => {
-          onSave();
-          showSuccessToast("Profile updated successfully.");
-        })
-        .catch((error) => {
-          console.log(error);
+        updatedFields.push({
+          field: "firstName",
+          oldValue: oldFirstName,
+          newValue: newFirstNameValue,
         });
-    } else if (Object.keys(newData).length === 0) {
-      // No changes made
-      showInfoToast("No changes made.");
-      return;
-    } else {
-      // Update the document with the new data
-      updateDoc(userDataRef, newData)
-        .then(() => {
-          onSave();
-          showSuccessToast("Profile updated successfully.");
-        })
-        .catch((error) => {
-          console.log(error);
+
+        updates.firstName = newFirstNameValue;
+        isUpdated = true;
+      }
+
+      if (
+        newLastName !== "" &&
+        newLastName !== userDataSnapshot.data().lastName
+      ) {
+        const oldLastName = userDataSnapshot.data().lastName;
+        const newLastNameValue = newLastName;
+
+        updatedFields.push({
+          field: "lastName",
+          oldValue: oldLastName,
+          newValue: newLastNameValue,
         });
+
+        updates.lastName = newLastNameValue;
+        isUpdated = true;
+      }
+
+      if (
+        newContactNumber !== "" &&
+        newContactNumber !== userDataSnapshot.data().contactNumber
+      ) {
+        const oldContactNumber = userDataSnapshot.data().contactNumber;
+        const newContactNumberValue = newContactNumber;
+
+        updatedFields.push({
+          field: "contactNumber",
+          oldValue: oldContactNumber,
+          newValue: newContactNumberValue,
+        });
+
+        updates.contactNumber = newContactNumberValue;
+        isUpdated = true;
+      }
+
+      if (newAddress !== "" && newAddress !== userDataSnapshot.data().address) {
+        const oldAddress = userDataSnapshot.data().address;
+        const newAddressValue = newAddress;
+
+        updatedFields.push({
+          field: "address",
+          oldValue: oldAddress,
+          newValue: newAddressValue,
+        });
+
+        updates.address = newAddressValue;
+        isUpdated = true;
+      }
+
+      if (newProfileImage) {
+        const oldImageUrl = userDataSnapshot.data().profileImageUrl;
+
+        if (oldImageUrl) {
+          const oldImageRef = ref(storage, oldImageUrl);
+          await deleteObject(oldImageRef);
+        }
+
+        const storageRef = ref(
+          storage,
+          `userProfile_images/${userId}/${new Date().getTime()}_${
+            newProfileImage.name
+          }`
+        );
+        await uploadBytes(storageRef, newProfileImage);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        const oldProfileImageUrl = userDataSnapshot.data().profileImageUrl;
+        const newProfileImageUrlValue = downloadURL;
+
+        updatedFields.push({
+          field: "profileImageUrl",
+          oldValue: oldProfileImageUrl,
+          newValue: newProfileImageUrlValue,
+        });
+
+        updates.profileImageUrl = newProfileImageUrlValue;
+        isUpdated = true;
+      }
+
+      if (isUpdated) {
+        await updateDoc(userDataRef, updates);
+
+        const monthDocumentId = moment().format("YYYY-MM");
+        const activityLogDocRef = doc(db, "ActivityLog", monthDocumentId);
+        const activityLogDocSnapshot = await getDoc(activityLogDocRef);
+        const activityLogData = activityLogDocSnapshot.exists()
+          ? activityLogDocSnapshot.data().actionLogData || []
+          : [];
+
+        activityLogData.push({
+          timestamp: new Date().toISOString(),
+          updatedFields: updatedFields,
+          userId: userId,
+          firstName: userDataSnapshot.data().firstName,
+          lastName: userDataSnapshot.data().lastName,
+          profileImageUrl: userDataSnapshot.data().profileImageUrl,
+          role: userDataSnapshot.data().role,
+          actionType: "Update",
+          actionDescription: "Updated user data",
+        });
+
+        await setDoc(
+          activityLogDocRef,
+          {
+            actionLogData: activityLogData,
+          },
+          { merge: true }
+        );
+        onSave();
+        showSuccessToast("User data is updated", 2000);
+      } else {
+        showInfoToast("No changes made", 2000);
+      }
+    } else {
+      showInfoToast("No user data", 2000);
     }
   };
 

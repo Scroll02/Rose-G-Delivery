@@ -265,6 +265,30 @@ const Checkout = () => {
     setSelectableTimes(getCurrentTime());
   }, []);
 
+  // Opening hours indicator for disabling the place ordder button
+  const openingHoursPassed = () => {
+    const openingHours = {
+      weekdays: { start: "08:00:00", end: "24:00:00" }, // 8:00am - 7:00pm
+      weekends: { start: "08:00:00", end: "20:00:00" }, // 8:00am - 8:00pm
+    };
+
+    const today = new Date();
+    const currentDay = today.getDay();
+    const currentTime = today.toLocaleTimeString("en-US", { hour12: false });
+
+    if (
+      (currentDay >= 1 &&
+        currentDay <= 5 &&
+        currentTime >= openingHours.weekdays.end) ||
+      ((currentDay === 0 || currentDay === 6) &&
+        currentTime >= openingHours.weekends.end)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
   // Place order button function
   const handlePlaceOrder = async () => {
     // If bag is empty, they can't place an order
@@ -788,7 +812,11 @@ const Checkout = () => {
                 </h6>
               </div>
 
-              <button className="place__order" onClick={handlePlaceOrder}>
+              <button
+                className="place__order"
+                onClick={handlePlaceOrder}
+                disabled={openingHoursPassed()}
+              >
                 Place Order
               </button>
             </div>

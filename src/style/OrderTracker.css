@@ -23,6 +23,7 @@
 .order__details-item p,
 .order__details-item span {
   display: inline-block;
+  font-size: 1rem;
 }
 .order__details-item p {
   font-weight: 500;

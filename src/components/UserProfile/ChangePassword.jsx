@@ -1,18 +1,16 @@
 import React, { useState } from "react";
 import "../../style/ChangePassword.css";
-
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-
+import moment from "moment";
 // Firebase
 import {
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
-
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db, auth } from "../../firebase";
-
 // Toast
 import {
   showSuccessToast,
@@ -57,15 +55,58 @@ const ChangePassword = ({ userData, onSave }) => {
   };
 
   const [customErrorMsg, setCustomErrorMsg] = useState("");
-
+  // Save button function
   const handleSave = async () => {
     try {
       const user = auth.currentUser;
       const credential = EmailAuthProvider.credential(user.email, oldPassword);
       await reauthenticateWithCredential(user, credential);
+
+      const updatedFields = [];
+
+      // Perform the password update
       await updatePassword(user, newPassword);
-      showSuccessToast("Password updated successfully!");
-      onSave();
+      const userId = user.uid;
+      const userDataRef = doc(db, "UserData", userId);
+      const userDataSnapshot = await getDoc(userDataRef);
+
+      if (userDataSnapshot.exists()) {
+        const firstName = userDataSnapshot.data().firstName;
+        const lastName = userDataSnapshot.data().lastName;
+        const profileImageUrl = userDataSnapshot.data().profileImageUrl;
+        const role = userDataSnapshot.data().role;
+
+        const monthDocumentId = moment().format("YYYY-MM");
+        const activityLogDocRef = doc(db, "ActivityLog", monthDocumentId);
+        const activityLogDocSnapshot = await getDoc(activityLogDocRef);
+        const activityLogData = activityLogDocSnapshot.exists()
+          ? activityLogDocSnapshot.data().actionLogData || []
+          : [];
+
+        activityLogData.push({
+          timestamp: new Date().toISOString(),
+          updatedFields: updatedFields,
+          userId: userId,
+          firstName: firstName,
+          lastName: lastName,
+          profileImageUrl: profileImageUrl,
+          role: role,
+          actionType: "Update",
+          actionDescription: "Updated user password",
+        });
+
+        await setDoc(
+          activityLogDocRef,
+          {
+            actionLogData: activityLogData,
+          },
+          { merge: true }
+        );
+        onSave();
+        showSuccessToast("Password updated successfully!");
+      } else {
+        showInfoToast("No user data", 2000);
+      }
     } catch (error) {
       switch (error.code) {
         case "auth/wrong-password":

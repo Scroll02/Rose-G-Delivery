@@ -34,6 +34,30 @@ const MenuProductCard = (props) => {
     setShowAvailabilityModal(false);
   };
 
+  // Opening hours indicator for disabling the add to cart button
+  const openingHoursPassed = () => {
+    const openingHours = {
+      weekdays: { start: "08:00:00", end: "24:00:00" }, // 8:00am - 7:00pm
+      weekends: { start: "08:00:00", end: "20:00:00" }, // 8:00am - 8:00pm
+    };
+
+    const today = new Date();
+    const currentDay = today.getDay();
+    const currentTime = today.toLocaleTimeString("en-US", { hour12: false });
+
+    if (
+      (currentDay >= 1 &&
+        currentDay <= 5 &&
+        currentTime >= openingHours.weekdays.end) ||
+      ((currentDay === 0 || currentDay === 6) &&
+        currentTime >= openingHours.weekends.end)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
   // Add to Cart Function
   const dispatch = useDispatch();
   const addToCart = async () => {
@@ -156,7 +180,11 @@ const MenuProductCard = (props) => {
                   <label>Out of stock</label>
                 </button>
               ) : (
-                <button className="menu__orderBtn" onClick={addToCart}>
+                <button
+                  className="menu__orderBtn"
+                  onClick={addToCart}
+                  disabled={openingHoursPassed()}
+                >
                   <i class="ri-shopping-cart-2-line"></i>
                   <span>+</span>
                 </button>

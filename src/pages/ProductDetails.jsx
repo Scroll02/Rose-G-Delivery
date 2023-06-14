@@ -28,14 +28,14 @@ import {
 } from "../components/Toast/Toast";
 
 const ProductDetails = () => {
-  //------------------ Get Document ID of the selected food ------------------//
+  // Get Document ID of the selected food
   const { id } = useParams();
   const bagItems = useSelector((state) => state.bag.bagItems);
 
-  //------------------ Navigation ------------------//
+  // Navigation
   const navigate = useNavigate();
 
-  //------------------ Retrieve Food Data ------------------//
+  // Retrieve Product Data
   const [productData, setProductData] = useState();
   const getProductData = async () => {
     const docRef = doc(db, "ProductData", id);
@@ -53,7 +53,7 @@ const ProductDetails = () => {
     getProductData();
   }, [id]);
 
-  // Food Quantity
+  // Product Quantity
   const [quantity, setQuantity] = useState(1);
   const handleQuantityChange = (event) => {
     const newQuantity = parseInt(event.target.value, 10);
@@ -76,7 +76,31 @@ const ProductDetails = () => {
     setShowAvailabilityModal(false);
   };
 
-  //------------------ Add to Bag Function ------------------//
+  // Opening hours indicator for disabling the add to cart button
+  const openingHoursPassed = () => {
+    const openingHours = {
+      weekdays: { start: "08:00:00", end: "19:00:00" }, // 8:00am - 7:00pm
+      weekends: { start: "08:00:00", end: "20:00:00" }, // 8:00am - 8:00pm
+    };
+
+    const today = new Date();
+    const currentDay = today.getDay();
+    const currentTime = today.toLocaleTimeString("en-US", { hour12: false });
+
+    if (
+      (currentDay >= 1 &&
+        currentDay <= 5 &&
+        currentTime >= openingHours.weekdays.end) ||
+      ((currentDay === 0 || currentDay === 6) &&
+        currentTime >= openingHours.weekends.end)
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Add to Cart button function
   const dispatch = useDispatch();
   const addToCart = async () => {
     if (!auth.currentUser) {
@@ -173,6 +197,7 @@ const ProductDetails = () => {
   return (
     <main>
       <Container>
+        {/* Availability Modal */}
         {showAvailabilityModal && (
           <AvailabilityModal closeAvalabilityModal={closeAvalabilityModal} />
         )}
@@ -253,6 +278,7 @@ const ProductDetails = () => {
                     <button
                       className="foodProduct__addBtn mt-4"
                       onClick={addToCart}
+                      disabled={openingHoursPassed()}
                     >
                       Add to Cart
                     </button>

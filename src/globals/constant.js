@@ -1,8 +1,9 @@
 import PendingIcon from "../assets/gif/order-pending.gif";
 import OrderConfirmed from "../assets/gif/order-confirmed.gif";
-import PreparingIcon from "../assets/gif/preparing-food.gif";
+import PreparedIcon from "../assets/gif/order-prepared.gif";
 import DeliveryIcon from "../assets/gif/order-delivery.gif";
 import DeliveredIcon from "../assets/gif/order-delivered.gif";
+import OrderPickedUpIcon from "../assets/gif/order-picked-up.gif";
 import CancelledImg from "../assets/images/cancel-order.svg";
 
 export const track_order_status = [
@@ -22,7 +23,7 @@ export const track_order_status = [
     id: 3,
     title: "Order Prepared",
     sub_title: "Your order has been prepared",
-    image: PreparingIcon,
+    image: PreparedIcon,
   },
   {
     id: 4,
@@ -55,18 +56,18 @@ export const pickup_order_status = [
     id: 3,
     title: "Order Prepared",
     sub_title: "Your order has been prepared",
-    image: PreparingIcon,
+    image: PreparedIcon,
   },
   {
     id: 4,
     title: "Ready for Pickup",
     sub_title: "Your order is ready for pickup",
-    image: PreparingIcon,
+    image: PreparedIcon,
   },
   {
     id: 5,
     title: "Order Picked Up",
     sub_title: "You have picked up your order",
-    image: PreparingIcon,
+    image: OrderPickedUpIcon,
   },
 ];

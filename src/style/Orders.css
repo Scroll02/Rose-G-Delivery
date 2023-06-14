@@ -29,16 +29,19 @@
   text-align: center;
 }
 
-.orderCard__body h4.pending,
-h4.delivery {
-  color: green;
+.orderCard__body h4.pending {
+  color: brown;
 }
-
-.orderCard__body h4.preparing,
-h4.confirmed {
-  color: orange;
+.orderCard__body h4.confirmed {
+  color: darkorange;
 }
-
+.orderCard__body h4.prepared {
+  color: darkblue;
+}
+.orderCard__body h4.delivery,
+.orderCard__body h4.ready-for-pickup {
+  color: lightseagreen;
+}
 .orderCard__body h6 {
   font-size: 18px;
   font-weight: bold;

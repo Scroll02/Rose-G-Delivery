@@ -77,7 +77,8 @@ h4.confirmed {
   font-weight: bold;
   margin-bottom: 10px;
 }
-.actHistoryCard__body h6.delivered {
+.actHistoryCard__body h6.delivered,
+.actHistoryCard__body h6.order-picked-up {
   color: green;
 }
 .actHistoryCard__body h6.cancelled {

@@ -1,0 +1,76 @@
+.thankYouModal__wrapper {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.thankYouModal__container {
+  position: relative;
+  background-color: white;
+  border-radius: 20px;
+  max-width: 500px;
+  padding: 50px 10px;
+}
+
+.thankYouModal__header {
+  padding: 10px 0;
+  border-bottom: 2px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.thankYouModal__close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 5px;
+  margin: 10px;
+}
+
+.thankYouModal__close-btn button {
+  background: var(--background-color2);
+  border: none;
+  border-radius: 50%;
+  padding: 5px 10px;
+}
+
+.thankYouModal__content p {
+  color: var(--text-color2);
+  margin: 20px 20px;
+  text-align: center;
+}
+
+.thankYou__icon {
+  display: block;
+  margin: 10px auto;
+  max-width: 30%;
+  height: auto;
+}
+
+@media (max-width: 600px) {
+  .thankYouModal__container {
+    margin: 10px;
+    padding: 20px;
+  }
+
+  .thankYouModal__content p {
+    margin: 10px 0;
+    font-size: 0.9rem;
+  }
+
+  .thankYouModal__close-btn {
+    margin: 5px;
+  }
+  .thankYouModal__header h6 {
+    font-size: 0.9rem;
+  }
+}

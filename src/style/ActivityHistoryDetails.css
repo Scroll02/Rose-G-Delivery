@@ -20,6 +20,10 @@
 .orderHistory__item {
   margin: 15px 0;
 }
+.orderHistory__item label,
+span {
+  font-size: 1rem;
+}
 .orderHistory__item label {
   font-weight: 600;
 }
@@ -36,6 +40,7 @@
 .cancelled__image-container img {
   width: 100%;
   height: auto;
+  margin-bottom: 20px;
 }
 .cancelled__msg-container {
   display: flex;
