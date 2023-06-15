@@ -29,7 +29,10 @@ const ActivityHistory = () => {
         ])
       );
       onSnapshot(ordersRef, (snapshot) => {
-        setOrderData(snapshot.docs.map((doc) => doc.data()));
+        const sortedData = snapshot.docs
+          .map((doc) => doc.data())
+          .sort((a, b) => b.orderDate - a.orderDate); // Sort in descending order based on orderDate
+        setOrderData(sortedData);
       });
     }
   };

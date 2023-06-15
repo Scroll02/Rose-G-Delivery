@@ -26,6 +26,33 @@ const Orders = () => {
   };
 
   // Retrieve UserOrders Data
+  // const getOrdersData = async () => {
+  //   const currentUser = auth.currentUser;
+
+  //   if (currentUser) {
+  //     const ordersRef = query(
+  //       collection(db, "UserOrders"),
+  //       where("orderUserId", "==", currentUser.uid),
+  //       where("orderStatus", "in", [
+  //         "Pending",
+  //         "Confirmed",
+  //         "Prepared",
+  //         "Delivery",
+  //         "Ready for Pickup",
+  //       ])
+  //     );
+  //     onSnapshot(ordersRef, (snapshot) => {
+  //       const orders = snapshot.docs.map((doc) => doc.data());
+  //       setOrderData(orders);
+  //       const hasIssue = orders.some(
+  //         (order) =>
+  //           order.proofOfPaymentIssue === "Insufficient Payment Amount" ||
+  //           order.proofOfPaymentIssue === "Invalid Proof of Payment"
+  //       );
+  //       setShowPOPIssueModal(hasIssue);
+  //     });
+  //   }
+  // };
   const getOrdersData = async () => {
     const currentUser = auth.currentUser;
 
@@ -38,12 +65,14 @@ const Orders = () => {
           "Confirmed",
           "Prepared",
           "Delivery",
+          "Ready for Pickup",
         ])
       );
       onSnapshot(ordersRef, (snapshot) => {
         const orders = snapshot.docs.map((doc) => doc.data());
-        setOrderData(orders);
-        const hasIssue = orders.some(
+        const sortedOrders = orders.sort((a, b) => b.orderDate - a.orderDate); // Sort in descending order based on orderDate
+        setOrderData(sortedOrders);
+        const hasIssue = sortedOrders.some(
           (order) =>
             order.proofOfPaymentIssue === "Insufficient Payment Amount" ||
             order.proofOfPaymentIssue === "Invalid Proof of Payment"

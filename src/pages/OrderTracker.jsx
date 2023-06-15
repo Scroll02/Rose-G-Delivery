@@ -384,12 +384,20 @@ const OrderTracker = () => {
                     {/* Only show the buttons if showPaymentButtons is true */}
                     {orderData?.settlementOptions === null ||
                       (orderData?.settlementOptions === undefined && (
+                        // <div className="settlementOpt__actions">
+                        //   <button
+                        //     className="settlementOpt__btn"
+                        //     onClick={handlePayWithGCash}
+                        //   >
+                        //     Re-upload proof of payment
+                        //   </button>
+                        // </div>
                         <div className="settlementOpt__actions">
                           <button
                             className="settlementOpt__btn"
-                            onClick={handlePayWithGCash}
+                            onClick={() => setShowProofOfPayment(true)}
                           >
-                            Pay with GCash
+                            Re-upload proof of payment
                           </button>
                         </div>
                       ))}
