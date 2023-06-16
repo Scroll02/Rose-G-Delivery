@@ -346,7 +346,6 @@ const Header = () => {
                   <NavLink
                     to={item.path}
                     key={index}
-                    // className="dropdown__menu__item"
                     className="dropdown__menu__item"
                     onClick={toggleProfileMenu}
                   >

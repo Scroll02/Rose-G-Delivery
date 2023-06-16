@@ -268,7 +268,7 @@ const Checkout = () => {
   // Opening hours indicator for disabling the place ordder button
   const openingHoursPassed = () => {
     const openingHours = {
-      weekdays: { start: "08:00:00", end: "19:00:00" }, // 8:00am - 7:00pm
+      weekdays: { start: "08:00:00", end: "24:00:00" }, // 8:00am - 7:00pm
       weekends: { start: "08:00:00", end: "20:00:00" }, // 8:00am - 8:00pm
     };
 
